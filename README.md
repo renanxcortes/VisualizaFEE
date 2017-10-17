@@ -7,5 +7,5 @@ There are applications of crime related making use of criminal occurrences of th
 The applications were all built in Shiny from RStudio and make use of the interactive graphics packages htmlwidgets (http://gallery.htmlwidgets.org/) such as plotly, leaflet, DT, D3plusR, D3plus and collapsibleTree.
 
 ## Consideration
-All the applications were developed by me, except for IdeseVis which was developed by Luís Fernando Paese (https://github.com/paeselhz) with my collaboration.
+All the applications were developed by me, except for IdeseVis which was developed by Luís Henrique Paese (https://github.com/paeselhz) with my collaboration.
 
