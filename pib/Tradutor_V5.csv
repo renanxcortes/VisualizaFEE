@@ -1,0 +1,18 @@
+Variavel;DescVar;DescVarShort;NivelHier;Ordem;SeRefere
+PIB;PIB;PIB;H1;1;PIB
+VAB;Valor Adicionado Bruto;VAB;H1;2;PIB
+Agro_Tot;Agropecuária;Agro.;H1;3;PIB
+Ind_Tot;Indústria;Ind.;H1;4;PIB
+Ind_EM;Indústria Extrativa Mineral;Ext. Min.;H2;5;Indústria
+Ind_T;Indústria de Transformação;Transfor.;H2;6;Indústria
+Ind_E;Eletricidade e gás, água, esgoto e limpeza urbana;EEG;H2;7;Indústria
+Ind_C;Construção;Constru.;H2;8;Indústria
+Ser_Tot;Serviços;Serv.;H1;9;PIB
+Ser_C;Comércio;Com.;H2;10;Serviços
+Ser_T;Transporte, armazenagem e correio;Transporte;H2;11;Serviços
+Ser_SI;Serviços de informação;Serv. Inf.;H2;12;Serviços
+Ser_I;Intermediação financeira e seguros;Financ. e Seg.;H2;13;Serviços
+Ser_AI;Atividades Imobiliárias;Ativ. Imob.;H2;14;Serviços
+Ser_O;Outros Serviços;Out. Serv.;H2;15;Serviços
+Ser_APU;APU, educação pública e saúde pública;APU;H2;16;Serviços
+Imp;Impostos;Imp.;H1;17;PIB
