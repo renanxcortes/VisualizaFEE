@@ -251,7 +251,7 @@ shinyServer(function(input, output) {
                             "ou mostrar","<br>",
                             "nome do", "<br>",
                             "municipio"), showlegend = TRUE, marker = NULL, visible="legendonly") %>%
-        layout(title = 'Gráfico de Dispersão',
+        layout(title = 'Gráfico de Bolhas',
                xaxis = x_attr,
                yaxis = y_attr)
       
@@ -269,7 +269,7 @@ shinyServer(function(input, output) {
         add_text(text = muni, textfont = t, fill=NULL, 
                  showlegend = TRUE,
                  marker = NULL, visible="legendonly") %>%
-        layout(title = 'Gráfico de Dispersão',
+        layout(title = 'Gráfico de Bolhas',
                xaxis = x_attr,
                yaxis = y_attr)
       
@@ -430,9 +430,367 @@ shinyServer(function(input, output) {
   output$downloadData <- downloadHandler(
     filename = function() { paste('base_crime', '.csv', sep='') },
     content = function(file) {
-      write.csv(datasetInput(), file)
+      write.csv(datasetInput(), file, fileEncoding = "latin1")
     }
   )
+  
+  
+  
+  
+  
+  output$mapas_markov <- renderPlot({
+
+    anos <- input$anos_markov
+    ano_inicial <-anos[1]
+    ano_final  <- anos[2]
+    crime <- input$crime_markov
+    
+    df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
+    df_aux_pre_final   <- filter(base_crime, Ano == ano_final & Crime == crime)
+    df_aux_pre <- filter(base_crime, Ano %in% anos & Crime == crime) %>% 
+                  select(CodIBGE, Ano, Qtd) %>% 
+                  spread(Ano, Qtd)
+    
+    names(df_aux_pre)[2] <- "Inicio"
+    names(df_aux_pre)[3] <- "Fim"
+    
+    # 1 - Permaneceu sem crime
+    # 2 - Passou a ter crime
+    # 3 - Permaneceu com crime
+    # 4 - Passou a não ter crime
+    #cores_T <- c("lightgreen", "red", "black", "blue")
+    cores_T <- c("#b8da6b", "#ff6d00", "#ca0000", "#ffd42a")
+    # Cores http://www.ginifab.com/feeds/pms/pms_color_in_image.php
+	
+    df_aux <- df_aux_pre %>% 
+              mutate(Transicao_Estado = ifelse(Inicio == 0 & Fim == 0, cores_T[1], ifelse(Inicio == 0 & Fim > 0, cores_T[2],ifelse(Inicio > 0 & Fim > 0, cores_T[3], cores_T[4]))))
+    
+    
+    df_mapa_inicial <- merge(mapa_rs, df_aux_pre_inicial, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
+    valores_inicial <- df_mapa_inicial@data$Qtd
+    cores_inicial <- ifelse(valores_inicial > 0, "darkgrey", NA)
+    
+    df_mapa_final <- merge(mapa_rs, df_aux_pre_final, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
+    valores_final <- df_mapa_final@data$Qtd
+    cores_final <- ifelse(valores_final > 0, "darkgrey", NA)
+    
+    df_mapa_transicao <- merge(mapa_rs, df_aux, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
+    cores_transicao <- df_mapa_transicao@data$Transicao_Estado
+    
+    par(mfrow = c(1,3), mar=c(1,1,2,1), oma=c(0,0,0,0), cex.main = 1.75)
+    plot(df_mapa_inicial, lwd = 1.175, col = cores_inicial, border="grey", main = paste0(crime, " em ", ano_inicial))
+    plot(df_mapa_final, lwd = 1.175, col = cores_final, border="grey", main = paste0(crime, " em ", ano_final))
+    plot(df_mapa_transicao, lwd = 1.175, 
+         col = cores_transicao, 
+         #border="grey", 
+         border="beige", 
+         main = "Transição de Estados")
+    legend('bottomleft', c("Permaneceu sem crime", "Passou a ter crime", "Permaneceu com crime", "Passou a não ter crime"), 
+           fill = cores_T, 
+           bg="white", 
+           box.col="white", 
+           cex = 1.25)
+    
+    
+  })
+  
+  output$tabela_bruta <- renderTable({
+    
+    anos <- input$anos_markov
+    crime <- input$crime_markov
+    
+    df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov)[4] <- "Inicial"
+    names(df_aux_pre_markov)[5] <- "Final"
+    
+    # Tabela Bruta
+    tab_bruta <- table(as.factor(df_aux_pre_markov$Inicial), as.factor(df_aux_pre_markov$Final))
+    
+    row.names(tab_bruta) <- c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência")
+    colnames(tab_bruta) <- c("Período Final - Sem Ocorrência", "Período Final - Com Ocorrência")
+    
+    tab_bruta_pre <- data.frame(tab_bruta) %>%
+                     spread(Var2, Freq)
+    
+    names(tab_bruta_pre)[1] <- ""
+    tab_bruta_pre
+    
+  })
+  
+  output$estatistica_chi <- renderText({
+    
+    anos <- input$anos_markov
+    crime <- input$crime_markov
+    
+    df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov)[4] <- "Inicial"
+    names(df_aux_pre_markov)[5] <- "Final"
+    
+    # Tabela Bruta
+    tab_bruta <- table(as.factor(df_aux_pre_markov$Inicial), as.factor(df_aux_pre_markov$Final))
+    
+    paste0("Estatística de Teste: ", round(chisq.test(tab_bruta)$statistic, 2), "\n" ,
+           "Valor-p: ", round(chisq.test(tab_bruta)$p.value, 8))
+    
+  })
+  
+  output$tabela_markov_simples <- renderTable({
+    
+    anos <- input$anos_markov
+    crime <- input$crime_markov
+    
+    df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov)[4] <- "Inicial"
+    names(df_aux_pre_markov)[5] <- "Final"
+    
+    tab_bruta <- table(as.factor(df_aux_pre_markov$Inicial), as.factor(df_aux_pre_markov$Final))
+    prop <- prop.table(tab_bruta, 1)# Probabilidades de transição (proporção marginal das linhas) 
+    
+    row.names(tab_bruta) <- c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência")
+    colnames(tab_bruta) <- c("Período Final - Sem Ocorrência", "Período Final - Com Ocorrência")
+    
+    # Ergodico
+    erg <- margin.table(tab_bruta, 1)
+    ergodico <- c(erg[1]/sum(erg), erg[2]/sum(erg))
+    
+    # Tabela Final
+    tab_markov <- data.frame(rbind(prop, ergodico)) %>% mutate(Inicial = c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência", "Ergódico")) %>% select(Inicial, X0, X1)
+    
+    row.names(tab_markov) <- c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência", "Ergódico")
+    colnames(tab_markov) <- c("", "Período Final - Sem Ocorrência", "Período Final - Com Ocorrência")
+    
+    tab_markov
+    
+  }, digits = 2)
+  
+  
+  output$odds_ratio_simples <- renderTable({
+    
+    anos <- input$anos_markov
+    crime <- input$crime_markov
+    
+    df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov)[4] <- "Inicial"
+    names(df_aux_pre_markov)[5] <- "Final"
+    
+    tab_bruta <- table(as.factor(df_aux_pre_markov$Inicial), as.factor(df_aux_pre_markov$Final))
+    prop <- prop.table(tab_bruta, 1)# Probabilidades de transição (proporção marginal das linhas) 
+    
+    row.names(tab_bruta) <- c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência")
+    colnames(tab_bruta) <- c("Período Final - Sem Ocorrência", "Período Final - Com Ocorrência")
+    
+    # Ergodico
+    erg <- margin.table(tab_bruta, 1)
+    ergodico <- c(erg[1]/sum(erg), erg[2]/sum(erg))
+    
+    # Tabela Final
+    tab_markov <- data.frame(rbind(prop, ergodico)) %>% mutate(Inicial = c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência", "Ergódico")) %>% select(Inicial, X0, X1)
+    
+    row.names(tab_markov) <- c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência", "Ergódico")
+    colnames(tab_markov) <- c("", "Período Final - Sem Ocorrência", "Período Final - Com Ocorrência")
+    
+    aux1 <- c("Chance de transitar para presença de crime", 
+              "Chance de transitar para ausência de crime",
+              "Chance de permanecer sem crime",
+              "Chance de permanecer com crime")
+    miolo_markov <- rbind(prop, ergodico)
+    aux2 <- c(miolo_markov[1,2]/miolo_markov[1,1], miolo_markov[2,1]/miolo_markov[2,2], miolo_markov[1,1]/miolo_markov[1,2], miolo_markov[2,2]/miolo_markov[2,1])
+    tab_odds <- data.frame(Descrição = aux1, Valor = aux2)
+    
+  }, digits = 2)
+  
+  
+  
+  output$tabela_markov_estratificada <- renderTable({
+    
+    # Medida que leva em consideracao os vizinhos
+    
+    anos <- input$anos_markov
+    ano_inicial <-anos[1]
+    ano_final  <- anos[2]
+    crime <- input$crime_markov
+    
+    df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
+    
+    df_mapa_inicial <- merge(mapa_rs, df_aux_pre_inicial, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
+    
+    nbrsm_pre <- poly2nb(df_mapa_inicial, queen = TRUE)
+    
+    valores_dummies <- data.frame(CodIBGE = df_mapa_inicial@data$GEOCODIG_M, Dummy_Crime = ifelse(df_mapa_inicial@data$Qtd > 0, 1, 0))
+    
+    # Checa se houve crime nos municípios vizinhos (1 se houve algum crime na vizinhança, 0 caso contrário)
+    verifica_vizinhos <- function(x) {if(sum(valores_dummies[x,]$Dummy_Crime) > 0) {1} else {0}}
+    
+    resultado <- unlist(map(nbrsm_pre, verifica_vizinhos))
+    
+    mun_estratificados <- data.frame(CodIBGE = valores_dummies$CodIBGE, Estrato = ifelse(resultado == 1, "B", "NB"))
+    
+    base_crime_estratos <- merge(base_crime, mun_estratificados, by = "CodIBGE")
+    
+    
+    # Matriz de transição NB
+    df_aux_pre_markov_NB <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "NB") %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao, -Estrato) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov_NB)[4] <- "Inicial"
+    names(df_aux_pre_markov_NB)[5] <- "Final"
+    
+    # Tabela Bruta
+    tab_bruta_NB <- table(as.factor(df_aux_pre_markov_NB$Inicial), as.factor(df_aux_pre_markov_NB$Final))
+    prop_NB <- prop.table(tab_bruta_NB, 1) # Probabilidades de transição (proporção marginal das linhas)
+    tab_final_NB <- cbind(rowSums(tab_bruta_NB),prop_NB)
+    
+    
+    
+    
+    
+    # Matriz de transição B
+    df_aux_pre_markov_B <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "B") %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao, -Estrato) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov_B)[4] <- "Inicial"
+    names(df_aux_pre_markov_B)[5] <- "Final"
+    
+    # Tabela Bruta
+    tab_bruta_B <- table(as.factor(df_aux_pre_markov_B$Inicial), as.factor(df_aux_pre_markov_B$Final))
+    prop_B <- prop.table(tab_bruta_B, 1) # Probabilidades de transição (proporção marginal das linhas)
+    tab_final_B <- cbind(rowSums(tab_bruta_B),prop_B)
+    
+    # Tabela Final NB + B:
+    miolo <- rbind(tab_final_NB, tab_final_B)
+    tab_final <- data.frame(Vizinhança = c("Sem crime", "Sem crime", "Com crime", "Com crime"),
+                            Inicial = c("Sem crime", "Com crime", "Sem crime", "Com crime"),
+                            n = miolo[,1],
+                            `Final - Sem crime` = miolo[,2],
+                            `Final - Com crime` = miolo[,3])
+    names(tab_final)[4:5] <- c("Final - Sem crime", "Final - Com crime")
+    tab_final
+    
+    
+  }, digits = 2)
+  
+  
+  
+  
+  output$odds_ratio_estratificado <- renderTable({
+    
+    # Medida que leva em consideracao os vizinhos
+    
+    anos <- input$anos_markov
+    ano_inicial <-anos[1]
+    ano_final  <- anos[2]
+    crime <- input$crime_markov
+    
+    df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
+    
+    df_mapa_inicial <- merge(mapa_rs, df_aux_pre_inicial, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
+    
+    nbrsm_pre <- poly2nb(df_mapa_inicial, queen = TRUE)
+    
+    valores_dummies <- data.frame(CodIBGE = df_mapa_inicial@data$GEOCODIG_M, Dummy_Crime = ifelse(df_mapa_inicial@data$Qtd > 0, 1, 0))
+    
+    # Checa se houve crime nos municípios vizinhos (1 se houve algum crime na vizinhança, 0 caso contrário)
+    verifica_vizinhos <- function(x) {if(sum(valores_dummies[x,]$Dummy_Crime) > 0) {1} else {0}}
+    
+    resultado <- unlist(map(nbrsm_pre, verifica_vizinhos))
+    
+    mun_estratificados <- data.frame(CodIBGE = valores_dummies$CodIBGE, Estrato = ifelse(resultado == 1, "B", "NB"))
+    
+    base_crime_estratos <- merge(base_crime, mun_estratificados, by = "CodIBGE")
+    
+    
+    # Matriz de transição NB
+    df_aux_pre_markov_NB <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "NB") %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao, -Estrato) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov_NB)[4] <- "Inicial"
+    names(df_aux_pre_markov_NB)[5] <- "Final"
+    
+    # Tabela Bruta
+    tab_bruta_NB <- table(as.factor(df_aux_pre_markov_NB$Inicial), as.factor(df_aux_pre_markov_NB$Final))
+    prop_NB <- prop.table(tab_bruta_NB, 1) # Probabilidades de transição (proporção marginal das linhas)
+    tab_final_NB <- cbind(rowSums(tab_bruta_NB),prop_NB)
+    
+    
+    
+    
+    
+    # Matriz de transição B
+    df_aux_pre_markov_B <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "B") %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao, -Estrato) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov_B)[4] <- "Inicial"
+    names(df_aux_pre_markov_B)[5] <- "Final"
+    
+    # Tabela Bruta
+    tab_bruta_B <- table(as.factor(df_aux_pre_markov_B$Inicial), as.factor(df_aux_pre_markov_B$Final))
+    prop_B <- prop.table(tab_bruta_B, 1) # Probabilidades de transição (proporção marginal das linhas)
+    tab_final_B <- cbind(rowSums(tab_bruta_B),prop_B)
+    
+    # Tabela Final NB + B:
+    miolo <- rbind(tab_final_NB, tab_final_B)
+    tab_final <- data.frame(Vizinhança = c("Sem crime", "Sem crime", "Com crime", "Com crime"),
+                            Inicial = c("Sem crime", "Com crime", "Sem crime", "Com crime"),
+                            n = miolo[,1],
+                            `Final - Sem crime` = miolo[,2],
+                            `Final - Com crime` = miolo[,3])
+    names(tab_final)[4:5] <- c("Final - Sem crime", "Final - Com crime")
+    
+    miolo_odds <- miolo[,-1]
+    
+    pi_B_12  <- miolo_odds[3,2]/miolo_odds[3,1]
+    pi_NB_12 <- miolo_odds[1,2]/miolo_odds[1,1]
+    
+    
+    pi_B_21  <- miolo_odds[4,1]/miolo_odds[4,2]
+    pi_NB_21 <- miolo_odds[2,1]/miolo_odds[2,2]
+    
+    pi_B_11  <- miolo_odds[3,1]/miolo_odds[3,2]
+    pi_NB_11 <- miolo_odds[1,1]/miolo_odds[1,2]
+    
+    pi_B_22  <- miolo_odds[4,2]/miolo_odds[4,1]
+    pi_NB_22 <- miolo_odds[2,2]/miolo_odds[2,1]
+    
+    theta_12 <- pi_B_12/pi_NB_12
+    theta_21 <- pi_B_21/pi_NB_21
+    theta_11 <- pi_B_11/pi_NB_11
+    theta_22 <- pi_B_22/pi_NB_22
+    
+    aux1 <- c("Efeito da vizinhança na transição para presença de crime", # vizinhança com crime
+              "Efeito da vizinhança na transição para ausência de crime",
+              "Efeito da vizinhança em permanecer na ausência de crime",
+              "Efeito da vizinhança em permanecer na presença de crime")
+    aux2 <- c(theta_12, theta_21, theta_11, theta_22)
+    
+    tab_odds <- data.frame(Descrição = aux1, Valor = aux2)
+    
+    
+    
+  }, digits = 2)
   
 
     

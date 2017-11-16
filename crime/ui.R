@@ -117,7 +117,7 @@ tags$style(type = 'text/css',
                           h2("Características do aplicativo"),
                           p("* Visualize séries temporais dos municípios e do Estado por número de ocorrências e taxas."),
                           p("* Relacione crimes em gráficos de dispersão e crie grupos de cidades."),
-                          p("* Visualize os dados em um mapa, de maneira interativa, e calcule autocorrelações espaciais dos crimes."),
+                          p("* Visualize os dados em mapas, de maneira interativa, e calcule autocorrelações espaciais dos crimes. Adicionalmente, verifique a evolução espaço temporal de presença/ausência de crimes através de Cadeias de Markov."),
                           p("* Obtenha a representação municipal no Estado de maneira rápida e intuitiva."),
                           p("* Realize pesquisas rápidas na base de dados e faça o ",em("download")," dos dados."),
                           br(),
@@ -249,7 +249,11 @@ tags$style(type = 'text/css',
                                        plotlyOutput("dispersao")
                                      )
                                    )),
-             tabPanel("Mapa",
+             tabPanel("Mapas",
+			 
+			 mainPanel(width = 12,
+                                tabsetPanel(type = 'tabs',
+                      tabPanel("Mapa Dinâmicos",
                       
                       sidebarLayout(
                         sidebarPanel(
@@ -312,7 +316,62 @@ tags$style(type = 'text/css',
                                                                      options = NULL)),
                                                     column(8,plotOutput("mapinha_grafo"))))
                         )
-                      )),
+                      ))
+					  
+					  ,tabPanel("Cadeias de Markov",
+                                
+                                sidebarLayout(
+                                  sidebarPanel(
+                                    
+                                    selectInput('crime_markov', 'Crime a ser analisado', 
+                                                                 as.character(unique(base_crime$Crime)),
+                                                                 selected = "Roubo de Veículos"),
+                                    
+                                    sliderInput('anos_markov', "Período de Análise:",
+                                                min = min(base_crime$Ano),
+                                                max = max(base_crime$Ano),
+                                                value = range(c(min(base_crime$Ano), max(base_crime$Ano))),
+                                                sep = ""), # Para remover o separador de milhar
+                                    
+                                    radioButtons("tipo_analise_markov", "Tipo de Análise Markoviana:",
+                                                 c("Temporal" = "radio_matriz_markov",
+                                                   "Espaço-Temporal" = "radio_matriz_markov_estratificada")),
+									
+									br(),
+												   
+									p('Inspirado em Rey, Sergio J., Elizabeth A. Mack, and Julia Koschinsky. ', em('Exploratory space–time analysis of burglary patterns.'), 'Journal of Quantitative Criminology 28.3 (2012): 509-531.')
+                                    
+                                    
+                                  ),
+                                  
+                                  # Show the plots
+                                  mainPanel(plotOutput("mapas_markov"), 
+                                  conditionalPanel(condition = ("input.tipo_analise_markov == 'radio_matriz_markov'"),
+                                            div(h3("Matriz de Markov de Probabilidades de Transição Temporal"), align = "center"),
+                                            div(tableOutput("tabela_markov_simples"), align = "center"),
+                                            div(h4("Tabela de Razões de Chance"), align = "center"),
+                                            div(tableOutput("odds_ratio_simples"), align = "center"),
+                                            br(),
+                                            div(h4("Matriz de Frequências e Teste de Independência"), align = "center"),
+                                            fluidRow(column(8, tableOutput("tabela_bruta")),
+                                                     div(column(4, h4("Teste Qui-Quadrado"), br(), verbatimTextOutput("estatistica_chi")), align = "center"))),
+                                  
+                                  conditionalPanel(condition = ("input.tipo_analise_markov == 'radio_matriz_markov_estratificada'"),
+                                                   div(h3("Matriz de Markov de Probabilidades de Transição Espaço-Temporal"), align = "center"),
+                                                   div(tableOutput("tabela_markov_estratificada"), align = "center"),
+                                                   div(h4("Tabela de Razões de Chance"), align = "center"),
+                                                   div(tableOutput("odds_ratio_estratificado"), align = "center"))
+                                  
+                                  
+                                )
+                                )
+                                
+                                
+                                )
+                      
+                      ))) # !
+					  
+					  ,
              
              tabPanel("Representação no estado",
                       
