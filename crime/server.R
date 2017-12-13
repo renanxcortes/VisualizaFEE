@@ -566,12 +566,14 @@ shinyServer(function(input, output) {
     ergodico <- c(erg[1]/sum(erg), erg[2]/sum(erg))
     
     # Tabela Final
-    tab_markov <- data.frame(rbind(prop, ergodico)) %>% mutate(Inicial = c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência", "Ergódico")) %>% select(Inicial, X0, X1)
+    tab_markov <- data.frame(rbind(prop, ergodico)) %>% 
+				  mutate(Inicial = c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência", "Ergódico")) %>% 
+				  select(Inicial, X0, X1)
     
     row.names(tab_markov) <- c("Período Inicial - Sem Ocorrência", "Período Inicial - Com Ocorrência", "Ergódico")
     colnames(tab_markov) <- c("", "Período Final - Sem Ocorrência", "Período Final - Com Ocorrência")
     
-    tab_markov
+    tab_markov[-3,] # O [-3,] tira a linha de ergódico 
     
   }, digits = 2)
   
@@ -791,6 +793,354 @@ shinyServer(function(input, output) {
     
     
   }, digits = 2)
+  
+  
+  
+  
+  
+    output$teste_chi_homog_spat <- renderText({
+    
+    anos <- input$anos_markov
+    ano_inicial <-anos[1]
+    ano_final  <- anos[2]
+    crime <- input$crime_markov
+    
+    df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
+    
+    df_mapa_inicial <- merge(mapa_rs, df_aux_pre_inicial, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
+    
+    nbrsm_pre <- poly2nb(df_mapa_inicial, queen = TRUE)
+    
+    valores_dummies <- data.frame(CodIBGE = df_mapa_inicial@data$GEOCODIG_M, Dummy_Crime = ifelse(df_mapa_inicial@data$Qtd > 0, 1, 0))
+    
+    # Checa se houve crime nos municípios vizinhos (1 se houve algum crime na vizinhança, 0 caso contrário)
+    verifica_vizinhos <- function(x) {if(sum(valores_dummies[x,]$Dummy_Crime) > 0) {1} else {0}}
+    
+    resultado <- unlist(map(nbrsm_pre, verifica_vizinhos))
+    
+    mun_estratificados <- data.frame(CodIBGE = valores_dummies$CodIBGE, Estrato = ifelse(resultado == 1, "B", "NB"))
+    
+    base_crime_estratos <- merge(base_crime, mun_estratificados, by = "CodIBGE")
+    
+    
+    # Matriz de transição NB
+    df_aux_pre_markov_NB <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "NB") %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao, -Estrato) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov_NB)[4] <- "Inicial"
+    names(df_aux_pre_markov_NB)[5] <- "Final"
+    
+    # Tabela Bruta
+    tab_bruta_NB <- table(as.factor(df_aux_pre_markov_NB$Inicial), as.factor(df_aux_pre_markov_NB$Final))
+    #prop_NB <- prop.table(tab_bruta_NB, 1) # Probabilidades de transição (proporção marginal das linhas)
+    #tab_final_NB <- cbind(rowSums(tab_bruta_NB),prop_NB)
+    
+    
+    
+    
+    
+    # Matriz de transição B
+    df_aux_pre_markov_B <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "B") %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao, -Estrato) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov_B)[4] <- "Inicial"
+    names(df_aux_pre_markov_B)[5] <- "Final"
+    
+    # Tabela Bruta
+    tab_bruta_B <- table(as.factor(df_aux_pre_markov_B$Inicial), as.factor(df_aux_pre_markov_B$Final))
+    #prop_B <- prop.table(tab_bruta_B, 1) # Probabilidades de transição (proporção marginal das linhas)
+    #tab_final_B <- cbind(rowSums(tab_bruta_B),prop_B)
+    
+    # Tabela Final NB + B (pg. 520 paper Reis)
+    f_sij <- rbind(tab_bruta_NB, tab_bruta_B)
+    f_si  <- rowSums(f_sij)
+    f_ij  <- matrix(c(f_sij[1,1]+f_sij[3,1], f_sij[1,2]+f_sij[3,2], f_sij[2,1]+f_sij[4,1], f_sij[2,2]+f_sij[4,2]), ncol = 2, byrow = T)
+    f_i   <- rowSums(f_ij)
+    
+    # Detalhe: o f.,i,. é em cima, no numerador, na expressão da fórmula
+    est_teste <- 2*(
+      f_sij[1,1]*log((f_sij[1,1]/(f_si[1]*f_ij[1,1]))*f_i[1]) + # i = 1, j = 1, s = 1
+        f_sij[2,1]*log((f_sij[2,1]/(f_si[2]*f_ij[2,1]))*f_i[2]) + # i = 2, j = 1, s = 1
+        f_sij[1,2]*log((f_sij[1,2]/(f_si[1]*f_ij[1,2]))*f_i[1]) + # i = 1, j = 2, s = 1
+        f_sij[3,1]*log((f_sij[3,1]/(f_si[3]*f_ij[1,1]))*f_i[1]) + # i = 1, j = 1, s = 2
+        
+        f_sij[3,2]*log((f_sij[3,2]/(f_si[3]*f_ij[1,2]))*f_i[1]) + # i = 1, j = 2, s = 2
+        f_sij[4,1]*log((f_sij[4,1]/(f_si[4]*f_ij[2,1]))*f_i[2]) + # i = 2, j = 1, s = 2
+        f_sij[2,2]*log((f_sij[2,2]/(f_si[2]*f_ij[2,2]))*f_i[2]) + # i = 2, j = 2, s = 1
+        f_sij[4,2]*log((f_sij[4,2]/(f_si[4]*f_ij[2,2]))*f_i[2]))  # i = 2, j = 2, s = 2
+    
+    pchisq(est_teste, df = 2, lower.tail = FALSE)
+    
+    paste0("Estatística de Teste: ", round(est_teste, 2), "\n" ,
+           "Valor-p: ", round(pchisq(est_teste, df = 2, lower.tail = FALSE), 4))
+    
+    
+  })
+  
+  
+  
+  
+  output$evolucao_odds_temporal <- renderPlotly({
+  
+  crime_escolhido_crimevis <- input$crime_markov
+  #anos_escolhidos_crimevis <- input$anos_markov
+  
+   pares_de_anos <- list()
+   for(i in 1:(length(unique(base_crime$Ano))-1)) {pares_de_anos[[i]] <- c(min(base_crime$Ano)+i-1, min(base_crime$Ano)+i)}
+
+    calcula_odds_dinamico_temporal <- function(anos_escolhidos, crime_escolhido){
+	  
+	anos <- anos_escolhidos
+	crime <- crime_escolhido
+
+	df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
+	  mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+	  select(-Qtd, -Populacao) %>%
+	  spread(Ano, Dummy_Ocorrencia)
+
+	names(df_aux_pre_markov)[4] <- "Inicial"
+	names(df_aux_pre_markov)[5] <- "Final"
+
+	tab_bruta <- table(as.factor(df_aux_pre_markov$Inicial), as.factor(df_aux_pre_markov$Final))
+	prop <- prop.table(tab_bruta, 1)# Probabilidades de transição (proporção marginal das linhas)
+
+	miolo_markov <- prop
+	odds_temporal <- c(miolo_markov[1,2]/miolo_markov[1,1], miolo_markov[2,1]/miolo_markov[2,2], miolo_markov[1,1]/miolo_markov[1,2], miolo_markov[2,2]/miolo_markov[2,1])
+
+	}
+	
+	aux <- data.frame(matrix(unlist(map2(pares_de_anos, crime_escolhido_crimevis, calcula_odds_dinamico_temporal)), ncol=length(pares_de_anos), byrow = F)) %>%
+       mutate(Tipo_Odds = c("Chance de transitar para presença de crime", 
+                            "Chance de transitar para ausência de crime",
+                            "Chance de permanecer sem crime",
+                            "Chance de permanecer com crime"))
+
+	names(aux) <- c((min(base_crime$Ano)+1):(max(base_crime$Ano)), "Tipo_Odds")
+
+	aux2_temp <- aux %>%
+				 gather(Ano, Odds, -Tipo_Odds)
+
+
+
+	plot_ly(aux2_temp, x = ~Ano, y = ~Odds, 
+			type = 'scatter', mode = 'lines', color = ~Tipo_Odds, 
+			hoverinfo="text",
+			text = ~paste0(Tipo_Odds,": ", round(Odds,2), "<br>",
+						   "Ano: ", Ano)) %>%
+	  layout(title = paste0("Efeito instantâneo temporal do ", crime_escolhido_crimevis), 
+	         titlefont = list(size = 15),
+			 yaxis = list(title = "Odds Temporal")#,
+			 #legend = list(orientation = 'h')
+			 )
+  
+  })
+  
+  
+  
+  
+  
+  
+  
+  output$evolucao_odds_espaco_temporal <- renderPlotly({
+  
+  crime_escolhido_crimevis <- input$crime_markov
+  
+  pares_de_anos <- list()
+  for(i in 1:(length(unique(base_crime$Ano))-1)) {pares_de_anos[[i]] <- c(min(base_crime$Ano)+i-1, min(base_crime$Ano)+i)}
+  
+  calcula_odds_dinamico_espaco_temporal <- function(anos_escolhidos, crime_escolhido){
+  
+  anos <- anos_escolhidos
+  ano_inicial <-anos[1]
+  ano_final  <- anos[2]
+  crime <- crime_escolhido
+  
+  df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
+  
+  df_mapa_inicial <- merge(mapa_rs, df_aux_pre_inicial, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
+  
+  nbrsm_pre <- poly2nb(df_mapa_inicial, queen = TRUE)
+  
+  valores_dummies <- data.frame(CodIBGE = df_mapa_inicial@data$GEOCODIG_M, Dummy_Crime = ifelse(df_mapa_inicial@data$Qtd > 0, 1, 0))
+  
+  # Checa se houve crime nos municípios vizinhos (1 se houve algum crime na vizinhança, 0 caso contrário)
+  verifica_vizinhos <- function(x) {if(sum(valores_dummies[x,]$Dummy_Crime) > 0) {1} else {0}}
+  
+  resultado <- unlist(map(nbrsm_pre, verifica_vizinhos))
+  
+  mun_estratificados <- data.frame(CodIBGE = valores_dummies$CodIBGE, Estrato = ifelse(resultado == 1, "B", "NB"))
+  
+  base_crime_estratos <- merge(base_crime, mun_estratificados, by = "CodIBGE")
+  
+  
+  # Matriz de transição NB
+  df_aux_pre_markov_NB <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "NB") %>%
+    mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+    select(-Qtd, -Populacao, -Estrato) %>%
+    spread(Ano, Dummy_Ocorrencia)
+  
+  names(df_aux_pre_markov_NB)[4] <- "Inicial"
+  names(df_aux_pre_markov_NB)[5] <- "Final"
+  
+  # Tabela Bruta
+  tab_bruta_NB <- table(as.factor(df_aux_pre_markov_NB$Inicial), as.factor(df_aux_pre_markov_NB$Final))
+  prop_NB <- prop.table(tab_bruta_NB, 1) # Probabilidades de transição (proporção marginal das linhas)
+  tab_final_NB <- cbind(rowSums(tab_bruta_NB),prop_NB)
+  
+  
+  
+  
+  
+  # Matriz de transição B
+  df_aux_pre_markov_B <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "B") %>%
+    mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+    select(-Qtd, -Populacao, -Estrato) %>%
+    spread(Ano, Dummy_Ocorrencia)
+  
+  names(df_aux_pre_markov_B)[4] <- "Inicial"
+  names(df_aux_pre_markov_B)[5] <- "Final"
+  
+  # Tabela Bruta
+  tab_bruta_B <- table(as.factor(df_aux_pre_markov_B$Inicial), as.factor(df_aux_pre_markov_B$Final))
+  prop_B <- prop.table(tab_bruta_B, 1) # Probabilidades de transição (proporção marginal das linhas)
+  tab_final_B <- cbind(rowSums(tab_bruta_B),prop_B)
+  
+  # Tabela Final NB + B:
+  miolo <- rbind(tab_final_NB, tab_final_B)
+  tab_final <- data.frame(Vizinhança = c("Sem crime", "Sem crime", "Com crime", "Com crime"),
+                          Inicial = c("Sem crime", "Com crime", "Sem crime", "Com crime"),
+                          n = miolo[,1],
+                          `Final - Sem crime` = miolo[,2],
+                          `Final - Com crime` = miolo[,3])
+  names(tab_final)[4:5] <- c("Final - Sem crime", "Final - Com crime")
+  
+  miolo_odds <- miolo[,-1]
+  
+  pi_B_12  <- miolo_odds[3,2]/miolo_odds[3,1]
+  pi_NB_12 <- miolo_odds[1,2]/miolo_odds[1,1]
+  
+  
+  pi_B_21  <- miolo_odds[4,1]/miolo_odds[4,2]
+  pi_NB_21 <- miolo_odds[2,1]/miolo_odds[2,2]
+  
+  pi_B_11  <- miolo_odds[3,1]/miolo_odds[3,2]
+  pi_NB_11 <- miolo_odds[1,1]/miolo_odds[1,2]
+  
+  pi_B_22  <- miolo_odds[4,2]/miolo_odds[4,1]
+  pi_NB_22 <- miolo_odds[2,2]/miolo_odds[2,1]
+  
+  theta_12 <- pi_B_12/pi_NB_12
+  theta_21 <- pi_B_21/pi_NB_21
+  theta_11 <- pi_B_11/pi_NB_11
+  theta_22 <- pi_B_22/pi_NB_22
+  
+  aux1 <- c("Efeito da vizinhança na transição para presença de crime", # vizinhança com crime
+            "Efeito da vizinhança na transição para ausência de crime",
+            "Efeito da vizinhança em permanecer na ausência de crime",
+            "Efeito da vizinhança em permanecer na presença de crime")
+  aux2 <- c(theta_12, theta_21, theta_11, theta_22)
+  
+  tab_odds <- aux2 # data.frame(Descrição = aux1, Valor = aux2)
+  
+}
+
+
+
+
+aux <- data.frame(matrix(unlist(map2(pares_de_anos, crime_escolhido_crimevis, calcula_odds_dinamico_espaco_temporal)), ncol=length(pares_de_anos), byrow = F)) %>%
+       mutate(Efeito_Vizinhanca = c("Transição para presença de crime", # vizinhança com crime
+                            "Transição para ausência de crime",
+                            "Permanecer na ausência de crime",
+                            "Permanecer na presença de crime"))
+
+names(aux) <- c((min(base_crime$Ano)+1):(max(base_crime$Ano)), "Efeito_Vizinhanca")
+
+aux2_espaco_temp <- aux %>%
+                    gather(Ano, Odds, -Efeito_Vizinhanca)
+
+plot_ly(aux2_espaco_temp, x = ~Ano, y = ~Odds, 
+        type = 'scatter', mode = 'lines', color = ~Efeito_Vizinhanca, 
+        hoverinfo="text",
+        text = ~paste0(Efeito_Vizinhanca,": ", round(Odds,2), "<br>",
+                       "Ano: ", Ano)) %>%
+  layout(title = paste0("Efeito instantâneo anual da vizinhança no ", crime_escolhido_crimevis), 
+         titlefont = list(size = 15),
+         yaxis = list(title = "Odds Espaço-Temporal")#,
+         #legend = list(orientation = 'h')
+         )
+  
+  
+  
+  })
+  
+  
+  
+  
+    output$teste_chi_homog_temporal <- renderText({
+    
+    anos_janela_1 <- input$anos_markov_janela_1
+    anos_janela_2 <- input$anos_markov_janela_2
+    
+    crime <- input$crime_markov
+    
+    df_aux_pre_markov_j1 <- filter(base_crime, Ano %in% anos_janela_1 & Crime == crime) %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov_j1)[4] <- "Inicial"
+    names(df_aux_pre_markov_j1)[5] <- "Final"
+    
+    tab_bruta_j1 <- table(as.factor(df_aux_pre_markov_j1$Inicial), as.factor(df_aux_pre_markov_j1$Final))
+    
+    df_aux_pre_markov_j2 <- filter(base_crime, Ano %in% anos_janela_2 & Crime == crime) %>%
+      mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
+      select(-Qtd, -Populacao) %>%
+      spread(Ano, Dummy_Ocorrencia)
+    
+    names(df_aux_pre_markov_j2)[4] <- "Inicial"
+    names(df_aux_pre_markov_j2)[5] <- "Final"
+    
+    tab_bruta_j2 <- table(as.factor(df_aux_pre_markov_j2$Inicial), as.factor(df_aux_pre_markov_j2$Final))
+    
+    # Tabela Final Temporal Adaptada do modelo espacial
+    f_sij <- rbind(tab_bruta_j1, tab_bruta_j2)
+    f_si  <- rowSums(f_sij)
+    f_ij  <- matrix(c(f_sij[1,1]+f_sij[3,1], f_sij[1,2]+f_sij[3,2], f_sij[2,1]+f_sij[4,1], f_sij[2,2]+f_sij[4,2]), ncol = 2, byrow = T)
+    f_i   <- rowSums(f_ij)
+    
+    # Detalhe: o f.,i,. é em cima, no numerador, na expressão da fórmula
+    est_teste <- 2*(
+      f_sij[1,1]*log((f_sij[1,1]/(f_si[1]*f_ij[1,1]))*f_i[1]) + # i = 1, j = 1, s = 1
+        f_sij[2,1]*log((f_sij[2,1]/(f_si[2]*f_ij[2,1]))*f_i[2]) + # i = 2, j = 1, s = 1
+        f_sij[1,2]*log((f_sij[1,2]/(f_si[1]*f_ij[1,2]))*f_i[1]) + # i = 1, j = 2, s = 1
+        f_sij[3,1]*log((f_sij[3,1]/(f_si[3]*f_ij[1,1]))*f_i[1]) + # i = 1, j = 1, s = 2
+        
+        f_sij[3,2]*log((f_sij[3,2]/(f_si[3]*f_ij[1,2]))*f_i[1]) + # i = 1, j = 2, s = 2
+        f_sij[4,1]*log((f_sij[4,1]/(f_si[4]*f_ij[2,1]))*f_i[2]) + # i = 2, j = 1, s = 2
+        f_sij[2,2]*log((f_sij[2,2]/(f_si[2]*f_ij[2,2]))*f_i[2]) + # i = 2, j = 2, s = 1
+        f_sij[4,2]*log((f_sij[4,2]/(f_si[4]*f_ij[2,2]))*f_i[2]))  # i = 2, j = 2, s = 2
+    
+    
+    pchisq(est_teste, df = 2, lower.tail = FALSE)
+    
+    paste0("Estatística de Teste: ", round(est_teste, 2), "\n" ,
+           "Valor-p: ", round(pchisq(est_teste, df = 2, lower.tail = FALSE), 4))
+    
+    
+  })
+  
+
+  
+  output$anos_janelas <- renderText({ paste0(c("Teste de Homogeneidade Temporal entre ", paste0(input$anos_markov_janela_1, collapse = "-"), " e ",  paste0(input$anos_markov_janela_2, collapse = "-"))) })
+  
+  
+  
+  
   
 
     

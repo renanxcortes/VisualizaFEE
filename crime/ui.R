@@ -253,7 +253,7 @@ tags$style(type = 'text/css',
 			 
 			 mainPanel(width = 12,
                                 tabsetPanel(type = 'tabs',
-                      tabPanel("Mapa Dinâmicos",
+                      tabPanel("Mapas Dinâmicos",
                       
                       sidebarLayout(
                         sidebarPanel(
@@ -336,6 +336,24 @@ tags$style(type = 'text/css',
                                     radioButtons("tipo_analise_markov", "Tipo de Análise Markoviana:",
                                                  c("Temporal" = "radio_matriz_markov",
                                                    "Espaço-Temporal" = "radio_matriz_markov_estratificada")),
+												   
+									conditionalPanel(condition = "input.tipo_analise_markov == 'radio_matriz_markov'",
+                                    checkboxInput("checkbox_inclui_teste_temporal", label = "Fazer teste de homogeneidade temporal?", value = FALSE)),
+                                    
+                                    conditionalPanel(condition = "input.tipo_analise_markov == 'radio_matriz_markov'",
+									conditionalPanel(condition = "input.checkbox_inclui_teste_temporal",
+                                                     sliderInput('anos_markov_janela_1', "Primeira janela de tempo do teste:",
+                                                                 min = min(base_crime$Ano),
+                                                                 max = max(base_crime$Ano),
+                                                                 value = range(c(min(base_crime$Ano), floor(mean(c(min(base_crime$Ano), max(base_crime$Ano)))))),
+                                                                 sep = ""),
+                                                     sliderInput('anos_markov_janela_2', "Segunda janela de tempo do teste:",
+                                                                 min = min(base_crime$Ano),
+                                                                 max = max(base_crime$Ano),
+                                                                 value = range(c(floor(mean(c(min(base_crime$Ano), max(base_crime$Ano)))), max(base_crime$Ano))),
+                                                                 sep = ""))),
+												   
+									checkboxInput("checkbox_inclui_evolucao_instantaneo_markoviana", label = "Incluir evolução instantânea anual de Odds", value = FALSE),
 									
 									br(),
 												   
@@ -354,13 +372,29 @@ tags$style(type = 'text/css',
                                             br(),
                                             div(h4("Matriz de Frequências e Teste de Independência"), align = "center"),
                                             fluidRow(column(8, tableOutput("tabela_bruta")),
-                                                     div(column(4, h4("Teste Qui-Quadrado"), br(), verbatimTextOutput("estatistica_chi")), align = "center"))),
+                                                     div(column(4, h4("Teste Qui-Quadrado"), br(), verbatimTextOutput("estatistica_chi")), align = "center")),
+													 
+											conditionalPanel(condition = "input.checkbox_inclui_teste_temporal",
+                                            div(h4(textOutput('anos_janelas')), align = "center"),
+                                            div(verbatimTextOutput("teste_chi_homog_temporal"), align = "center")),
+													 
+										    conditionalPanel(condition = 'input.checkbox_inclui_evolucao_instantaneo_markoviana', br(), br(), plotlyOutput("evolucao_odds_temporal"))),
+													 
+													 
+								  
+								  
                                   
                                   conditionalPanel(condition = ("input.tipo_analise_markov == 'radio_matriz_markov_estratificada'"),
                                                    div(h3("Matriz de Markov de Probabilidades de Transição Espaço-Temporal"), align = "center"),
                                                    div(tableOutput("tabela_markov_estratificada"), align = "center"),
-                                                   div(h4("Tabela de Razões de Chance"), align = "center"),
-                                                   div(tableOutput("odds_ratio_estratificado"), align = "center"))
+                                                   fluidRow(column(8, div(h4("Tabela de Razões de Chance"), align = "center"),
+                                                   div(tableOutput("odds_ratio_estratificado"), align = "center")),
+                                                   column(4, div(h4("Teste de Homogeneidade Espacial"), align = "center"),
+                                                   div(verbatimTextOutput("teste_chi_homog_spat"), align = "center"))),
+												   
+												   conditionalPanel(condition = 'input.checkbox_inclui_evolucao_instantaneo_markoviana', br(), br(), plotlyOutput("evolucao_odds_espaco_temporal"))
+												   
+												   )
                                   
                                   
                                 )
