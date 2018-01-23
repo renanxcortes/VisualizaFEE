@@ -1,31 +1,13 @@
+# Packages
+library(rgdal)
+library(plotly)
+library(stringi)
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(d3plus)
+library(DT)
 
-# This is the server logic for a Shiny web application.
-# You can find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com
-#
-#load("C:/Users/renan/Desktop/Shiny Apps/DemografiaVis/Imagem_DemografiaVis_nova.RData")
-require(rgdal)
-require(plotly)
-require(stringi)
-require(tidyverse)
-require(dplyr)
-require(tidyr)
-require(d3plus)
-require(DT)
-#load("C:/Users/renan/Desktop/Shiny Apps/ProjetoAppCrime/Imagem_AppCrime.Rdata")
-#load("C:/Users/Windows 8.1/Desktop/Shiny Apps/ProjetoAppCrime/Imagem_AppCrime.Rdata")
-#setwd("C:/Users/Windows 8.1/Desktop/Shiny Apps/ProjetoAppCrime")
-
-
-#df_pre_pre <- readRDS("DemoVisBase.rds")
-#corresp <- readRDS("Corresp_Mun_PopRS.rds")
-#df_pre <- inner_join(df_pre_pre, corresp, by = "CodIBGE")
-#df_pre <- readRDS("df_pre_joineado.rds")
-#mapa_rs <- readRDS("mapaRS.rds")
-#mapa_rs@data$Nome_Munic <- stri_conv(as.character(mapa_rs@data$Nome_Munic), "latin1", "UTF-8")
-
-#df_ppp <- readRDS("DemoVisBase.rds")
 df_ppp <- readRDS("popvisBase_2016.rds")
 
 df_proj <- readRDS("proj_rs.rds")
@@ -40,7 +22,7 @@ mapa_rs <- readRDS("mapaRS.rds")
 mapa_cr <- readRDS("mapaCR.rds")
 mapa_rf <- readRDS("mapaRF.rds")
 
-levels(mapa_cr$Corede) <- stri_conv(as.character(levels(mapa_cr$Corede)), "latin1", "UTF-8") # Funcionou que é uma beleza pra codificação dos mapas dos coredes
+levels(mapa_cr$Corede) <- stri_conv(as.character(levels(mapa_cr$Corede)), "latin1", "UTF-8") # Para codificação dos mapas dos coredes
 levels(mapa_cr$Corede)[14] <- "Metropolitano Delta do Jacuí"
 
 mapa_rs@data$Nome_Munic <- stri_conv(as.character(mapa_rs@data$Nome_Munic), "latin1", "UTF-8")
@@ -102,7 +84,6 @@ shinyServer(function(input, session, output) {
                            margin = "0px",
                            padding= "0px")
     print(my_test)
-    #my_test
   })
   
   output$piramide_municipio <- renderPlotly({

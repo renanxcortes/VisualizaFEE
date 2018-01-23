@@ -1,7 +1,5 @@
 library(shiny)
-
 library(tidyverse)
-#library(data.table)
 library(leaflet.minicharts) # install.packages("leaflet.minicharts")
 library(leaflet)
 library(collapsibleTree)
@@ -15,9 +13,7 @@ options(shiny.sanitize.errors = FALSE)
 
 name <- "PIBVis"
 
-#setwd("C:\\Users\\Windows 8.1\\Desktop\\Shiny Apps\\PIBVisNew")
-#setwd("C:\\Users\\renan\\Desktop\\PIBVisNew")
-#base_pib_mun <- tbl_df(fread("base_pib_mun.csv", dec=","))
+
 base_pib_mun <- readRDS("base_pib_mun.rds") %>%
   mutate(VAB_OutSer = VAB_Serv - VAB_Apub,
          Pop_PIB = PIB / PIB_pp)
@@ -29,8 +25,7 @@ mapa_mun <- readRDS("MapaRSMunicipios.rds")
 mapa_cor <- readRDS("MapaRSCoredes.rds")
 mapa_rf <- readRDS("mapaRF.rds")
 
-#base_trimestral <- readRDS("base_final_trimestral.rds")
-base_trimestral <- readRDS("base_final_trimestral_TRIM_II_2017_V8.rds") #%>%
+base_trimestral <- readRDS("base_final_trimestral_TRIM_III_2017_V1.rds") #%>%
                    #filter(AnoTrim != "2017.II")
 base_trimestral$TipoDado <- stri_conv(as.character(base_trimestral$TipoDado), "latin1", "UTF-8")
 base_trimestral$SeRefere <- stri_conv(as.character(base_trimestral$SeRefere), "latin1", "UTF-8")
@@ -91,7 +86,6 @@ base_pib_rf <- base_pib_aux %>%
   ungroup()
 
 
-# Define UI for application that draws a histogram
 shinyUI(fluidPage(htmlOutput("frame"), theme = shinytheme("cerulean"), includeCSS("estilopib.css"), tags$head(tags$link(rel="shortcut icon", href="feeicon.ico")),
 
 tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelha de erro!!
@@ -148,441 +142,30 @@ tags$style(type = 'text/css',
 						  h2("Estrutura dos Setores do PIB Trimestral"),
                           div(collapsibleTreeOutput("pib_trim_tree_struc"), align = "center"),
 						  br(),
-						  #h2("Estrutura dos Setores do PIB Municipal"),
-                          #collapsibleTreeOutput("pib_mun_struct"),
 						  br(),
-						  h3("Contato para dúvidas, sugestões ou solicitações:"),
+						  h3("Contato para dúvidas, sugestões ou solicitações de código:"),
 						  p("Roberto Pereira da Rocha ou Renan Xavier Cortes ",
                             a("(CONTATO)", 
-                              href = "http://www.fee.rs.gov.br/contato/", target="_blank"))
+                              href = "http://www.fee.rs.gov.br/contato/", target="_blank")),
+						  
+						  br(),
+						  br(),
+						  div(img(href = "http://creativecommons.org/licenses/by/4.0/", src="https://i.creativecommons.org/l/by/4.0/88x31.png"), align = "center"),
+						  div(p("Este obra está licenciada com uma Licença"), align = "center"),
+						  div(a("Creative Commons Atribuição 4.0 Internacional",
+                              href = "http://creativecommons.org/licenses/by/4.0/", target="_blank"), align = "center")
 
                         )
                         )
                         ),
              
              
-             
-             
-# navbarMenu(title = "PIB Municipal - Mapas",
-#            
-#            tabPanel("Valor e Participação",
-#                     h3("Mapas de Valor e Participação no RS", align = "center"),
-#                     mainPanel(width = 12,
-#                               tabsetPanel(type = 'tabs',
-#                                           
-#                                           
-#                                           tabPanel("Municípios", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_mun_valores', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('setor_mun_valores', 'Variável de Análise', 
-#                                                                    choices = setores,
-#                                                                    selected = "Produto Interno Bruto (PIB)"),
-#                                                        
-#                                                        radioButtons("tipo_dado_mapa_valor_mun", "Tipo de Informação:",
-#                                                                     c("Número Absoluto" = "radio_absoluto_mun",
-#                                                                       "Percentual no Estado" = "radio_percent_mun"))
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        leafletOutput("mapa_mun_valores")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),            
-#                                           
-#                                           tabPanel("Coredes", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_cor_valores', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('setor_cor_valores', 'Variável de Análise', 
-#                                                                    choices = setores,
-#                                                                    selected = "Produto Interno Bruto (PIB)"),
-#                                                        
-#                                                        radioButtons("tipo_dado_mapa_valor_cor", "Tipo de Informação:",
-#                                                                     c("Número Absoluto" = "radio_absoluto_cor",
-#                                                                       "Percentual no Estado" = "radio_percent_cor"))
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        leafletOutput("mapa_cor_valores")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),
-#                                           
-#                                           tabPanel("Regiões Funcionais", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_rf_valores', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('setor_rf_valores', 'Variável de Análise', 
-#                                                                    choices = setores,
-#                                                                    selected = "Produto Interno Bruto (PIB)"),
-#                                                        
-#                                                        radioButtons("tipo_dado_mapa_valor_rf", "Tipo de Informação:",
-#                                                                     c("Número Absoluto" = "radio_absoluto_rf",
-#                                                                       "Percentual no Estado" = "radio_percent_rf"))
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        leafletOutput("mapa_rf_valores")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           )
-#                                           
-#                               )
-#                               
-#                               
-#                     )
-#                     
-#                     
-#            ),
-#            
-#            tabPanel("Estrutura dos Setores na Região",
-#                     h3("Mapas de Estrutura dos Setores nas Regiões", align = "center"),
-#                     mainPanel(width = 12,
-#                               tabsetPanel(type = 'tabs',
-#                                           
-#                                           
-#                                           tabPanel("Municípios", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_mun', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        radioButtons("tipo_representacao_mun", "Tipo de Estrutura:",
-#                                                                     c("VAB e Impostos no PIB" = "vab_imp_mun",
-#                                                                       "Agropecuária, Indústria e Serviços no VAB" = "agro_ind_serv_mun",
-#                                                                       "Administração Pública e Outros Serviços no VAB dos Serviços" = "apub_out_mun"))
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        leafletOutput("mapa_mun_minichart")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),            
-#                                           
-#                                           tabPanel("Coredes", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_cor', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        radioButtons("tipo_representacao_cor", "Tipo de Estrutura:",
-#                                                                     c("VAB e Impostos no PIB" = "vab_imp_cor",
-#                                                                       "Agropecuária, Indústria e Serviços no VAB" = "agro_ind_serv_cor",
-#                                                                       "Administração Pública e Outros Serviços no VAB dos Serviços" = "apub_out_cor"))
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        leafletOutput("mapa_cor_minichart")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),
-#                                           
-#                                           tabPanel("Regiões Funcionais", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_rf', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        radioButtons("tipo_representacao_rf", "Tipo de Estrutura:",
-#                                                                     c("VAB e Impostos no PIB" = "vab_imp_rf",
-#                                                                       "Agropecuária, Indústria e Serviços no VAB" = "agro_ind_serv_rf",
-#                                                                       "Administração Pública e Outros Serviços no VAB dos Serviços" = "apub_out_rf"))
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        leafletOutput("mapa_rf_minichart")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           )
-#                                           
-#                               )
-#                               
-#                               
-#                     )
-#                     
-#                     
-#            )
-#            
-#            
-#            
-#            
-#            
-# ),
-# 
-# 
-# navbarMenu(title = "PIB Municipal - Estruturas",
-#            
-#            tabPanel("Regionais",
-#                     h3("Treemaps das Regiões no RS", align = "center"),
-#                     mainPanel(width = 12,
-#                               tabsetPanel(type = 'tabs',
-#                                           
-#                                           
-#                                           tabPanel("Municípios", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_mun_regioes_treemap', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('setor_mun_regioes_treemap', 'Variável de Análise', 
-#                                                                    choices = setores,
-#                                                                    selected = "Produto Interno Bruto (PIB)")
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        uiOutput("tree_mun_regioes")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),            
-#                                           
-#                                           tabPanel("Coredes", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_cor_regioes_treemap', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('setor_cor_regioes_treemap', 'Variável de Análise', 
-#                                                                    choices = setores,
-#                                                                    selected = "Produto Interno Bruto (PIB)")
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        uiOutput("tree_cor_regioes")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),
-#                                           
-#                                           tabPanel("Regiões Funcionais", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_rf_regioes_treemap', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('setor_rf_regioes_treemap', 'Variável de Análise', 
-#                                                                    choices = setores,
-#                                                                    selected = "Produto Interno Bruto (PIB)")
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        uiOutput("tree_rf_regioes")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),
-#                                           
-#                                           tabPanel("Hierarquia Regional", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_hier_regioes_treemap', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('setor_hier_regioes_treemap', 'Variável de Análise', 
-#                                                                    choices = setores,
-#                                                                    selected = "Produto Interno Bruto (PIB)")
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        uiOutput("tree_hier_regioes")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           )
-#                                           
-#                               )
-#                               
-#                               
-#                     )
-#                     
-#                     
-#            ),
-#            
-#            
-#            
-#            tabPanel("Setoriais",
-#                     h3("Treemap setorial no RS", align = "center"),
-#                     mainPanel(width = 12,
-#                               tabsetPanel(type = 'tabs',
-#                                           
-#                                           tabPanel("Estado", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_rs_setorial_treemap', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep='')
-#                                                        
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        uiOutput("tree_rs_setorial")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),
-#                                           
-#                                           
-#                                           tabPanel("Municípios", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_mun_setorial_treemap', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('mun_setorial_treemap', 'Município de Análise', 
-#                                                                    choices = unique(base_pib_mun$Municipio),
-#                                                                    selected = "Porto Alegre"),
-#                                                        
-#                                                        leafletOutput("mapinha_municipios")
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        uiOutput("tree_mun_setorial")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),            
-#                                           
-#                                           tabPanel("Coredes", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_cor_setorial_treemap', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('cor_setorial_treemap', 'Corede de Análise', 
-#                                                                    choices = unique(base_pib_cor$Corede),
-#                                                                    selected = "Metropolitano Delta do Jacuí"),
-#                                                        
-#                                                        leafletOutput("mapinha_corede")
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        uiOutput("tree_cor_setorial")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           ),
-#                                           
-#                                           tabPanel("Regiões Funcionais", 
-#                                                    sidebarLayout(
-#                                                      sidebarPanel(
-#                                                        sliderInput('ano_pib_rf_setorial_treemap', 'Ano a ser escolhido', 
-#                                                                    min = min(base_pib_mun$Ano),
-#                                                                    max = max(base_pib_mun$Ano),
-#                                                                    value = max(base_pib_mun$Ano),
-#                                                                    step=1,
-#                                                                    animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
-#                                                        
-#                                                        selectInput('rf_setorial_treemap', 'Região Funcional de Análise', 
-#                                                                    choices = unique(base_pib_rf$CodRF),
-#                                                                    selected = "1"),
-#                                                        
-#                                                        leafletOutput("mapinha_rf")
-#                                                      ),
-#                                                      
-#                                                      # Show a plot of the generated distribution
-#                                                      mainPanel(
-#                                                        uiOutput("tree_rf_setorial")
-#                                                      )
-#                                                    )
-#                                                    
-#                                           )
-#                                           
-#                               )
-#                               
-#                               
-#                     )
-#                     
-#                     
-#            )
-#            
-#            
-#            
-#            
-#            
-# ),
+
              
              
              navbarMenu(title = "PIB Trimestral - Gráficos",
                         
                         tabPanel("Resultados Trimestrais",
-                                 #h3("Treemaps das Regiões no RS", align = "center"),
                                  mainPanel(width = 12,
                                            tabsetPanel(type = 'tabs',
                                                        
@@ -604,10 +187,6 @@ tags$style(type = 'text/css',
                                                                                 choices = unique(base_trimestral$SeRefere),
                                                                                 selected = "PIB"),
                                                                     
-                                                                    #selectInput('ajuste_var_compara', 'Com ou Sem Ajuste Sazonal?', 
-                                                                    #            choices = unique(base_trimestral$Ajuste),
-                                                                    #            selected = "Sem"),
-                                                                    
                                                                     
                                                                     
                                                                     conditionalPanel(condition = 'input.ajuste_var_compara == "radio_ajuste_compara_sem"',
@@ -626,7 +205,6 @@ tags$style(type = 'text/css',
                                                                     
                                                                   ),
                                                                   
-                                                                  # Show a plot of the generated distribution
                                                                   mainPanel(
                                                                     br(),
                                                                     plotlyOutput("comparacao_trimestral"),
@@ -651,7 +229,6 @@ tags$style(type = 'text/css',
                         
                         
                         tabPanel("Séries de Tempo",
-                                 #h3("Treemap setorial no RS", align = "center"),
                                  mainPanel(width = 12,
                                            tabsetPanel(type = 'tabs',
                                                        
@@ -664,14 +241,6 @@ tags$style(type = 'text/css',
                                                                                  c("Sem Ajuste" = "radio_ajuste_evolu_sem",
                                                                                    "Com Ajuste" = "radio_ajuste_evolu_com")),
                                                                     
-                                                                    #selectInput('ajuste_evolu_temp', 'Com ou Sem Ajuste Sazonal?', 
-                                                                    #           choices = unique(base_trimestral$Ajuste),
-                                                                    #          selected = "Sem"),
-                                                                    
-                                                                    
-                                                                    #selectInput('setor_evolu_temp', 'Setor:', 
-                                                                    #            choices = unique(base_trimestral$DescVar),
-                                                                    #            selected = "PIB"),
                                                                     
                                                                     selectInput('setor_evolu_rs_br', 'Setor', choices = list(
                                                                       `PIB` = c(`PIB` = 'PIB', 
@@ -705,7 +274,6 @@ tags$style(type = 'text/css',
                                                                     
                                                                   ),
                                                                   
-                                                                  # Show a plot of the generated distribution
                                                                   mainPanel(
                                                                     br(),
                                                                     plotlyOutput("evolucao_trimestral"),
@@ -728,14 +296,6 @@ tags$style(type = 'text/css',
                                                                                 choices = unique(base_trimestral$Local),
                                                                                 selected = "Rio Grande do Sul"),
                                                                     
-                                                                    #selectInput('ajuste_evolu_temp', 'Com ou Sem Ajuste Sazonal?', 
-                                                                    #           choices = unique(base_trimestral$Ajuste),
-                                                                    #          selected = "Sem"),
-                                                                    
-                                                                    
-                                                                    #selectInput('setor_evolu_temp', 'Setor:', 
-                                                                    #            choices = unique(base_trimestral$DescVar),
-                                                                    #            selected = "PIB"),
                                                                     
                                                                     selectizeInput('setor_evolu_setores', 'Setor:', choices = list(
                                                                       `PIB` = c(`PIB` = 'PIB', 
@@ -769,7 +329,6 @@ tags$style(type = 'text/css',
                                                                     
                                                                   ),
                                                                   
-                                                                  # Show a plot of the generated distribution
                                                                   mainPanel(
                                                                     br(),
                                                                     plotlyOutput("evolucao_trimestral_setores"),
@@ -807,15 +366,10 @@ tags$style(type = 'text/css',
                                                                                     `Outros Serviços` = 'Outros Serviços',
                                                                                     `Serviços de informação` = 'Serviços de informação',
                                                                                     `Transporte, armazenagem e correio` = 'Transporte, armazenagem e correio')
-                                                                    ), selectize = FALSE)#,
-                                                                    
-                                                                                     #selectInput('tipo_dado_evolu1_ajuste', 'Tipo de Dado:', 
-                                                                                     #           choices = unique(base_trimestral)$TipoDado,
-                                                                                     #           selected = "Índice Bruto")
+                                                                    ), selectize = FALSE)
                                                                     
                                                                   ),
                                                                   
-                                                                  # Show a plot of the generated distribution
                                                                   mainPanel(
                                                                     br(),
                                                                     plotlyOutput("evolucao_trimestral_ajuste"),
@@ -857,14 +411,10 @@ tags$style(type = 'text/css',
                                                                                 choices = rev(unique(base_trimestral$AnoTrim)), # Reverso da ordem default, pois ele não ordenava bem characters
                                                                                 selected = max(base_trimestral$AnoTrim))
                                                                     
-                                                                    #selectInput('ajuste_var_compara', 'Com ou Sem Ajuste Sazonal?', 
-                                                                    #            choices = unique(base_trimestral$Ajuste),
-                                                                    #            selected = "Sem"),
                                                                     
                                                                     
                                                                   ),
                                                                   
-                                                                  # Show a plot of the generated distribution
                                                                   mainPanel(
                                                                     br(),
                                                                     div(h3(textOutput("titulo_tabela_pib")), align = "center"),
@@ -905,14 +455,10 @@ tags$style(type = 'text/css',
                                                                                 choices = rev(unique(base_trimestral$AnoTrim)), # Reverso da ordem default, pois ele não ordenava bem characters
                                                                                 selected = max(base_trimestral$AnoTrim))
                                                                     
-                                                                    #selectInput('ajuste_var_compara', 'Com ou Sem Ajuste Sazonal?', 
-                                                                    #            choices = unique(base_trimestral$Ajuste),
-                                                                    #            selected = "Sem"),
                                                                     
                                                                     
                                                                   ),
                                                                   
-                                                                  # Show a plot of the generated distribution
                                                                   mainPanel(
                                                                     br(),
                                                                     div(h3(textOutput("titulo_tabela_pib_brrs")), align = "center"),
@@ -967,14 +513,10 @@ tags$style(type = 'text/css',
                                                                                     `Transporte, armazenagem e correio` = 'Transporte, armazenagem e correio')
                                                                     ), selectize = FALSE)
                                                                     
-                                                                    #selectInput('ajuste_var_compara', 'Com ou Sem Ajuste Sazonal?', 
-                                                                    #            choices = unique(base_trimestral$Ajuste),
-                                                                    #            selected = "Sem"),
                                                                     
                                                                     
                                                                   ),
                                                                   
-                                                                  # Show a plot of the generated distribution
                                                                   mainPanel(
                                                                     br(),
                                                                     div(h3(textOutput("titulo_tabela_temporal")), align = "center"),

@@ -1,42 +1,19 @@
 # Pacotes
 library(shiny)
-#library(dygraphs)
 library(plotly)
 library(leaflet)
-#library(leafletR)
-#library(rgdal)
 library(d3plus) # devtools::install_github("jpmarindiaz/d3plus")
-#library(MTS)
-#library(xts)
-library(DT) # Data tables
+library(DT)
 library(C3) # devtools::install_github("FrissAnalytics/shinyJsTutorials/widgets/C3")
-#library(highcharter)
 library(spdep)
 library(flexdashboard) # install.packages("flexdashboard", type = "source")
-#library(flexclust)
-#library(rgeos) # Função gSimplify
+library(tidyverse)
+library(stringi)
+library(shinyBS) # Pelos botoes de popover e tooltip
+library(shinythemes)
 
-require(tidyverse)
-#require(dplyr)
-#require(tidyr)
-require(stringi)
-require(shinyBS) # Pelos botoes de popover e tooltip
-require(shinythemes)
 
-# Para definir a imagem
-#setwd("C:/Users/renan/Desktop/Shiny Apps/ProjetoAppCrime")
-#setwd("C:/Users/Windows 8.1/Desktop/Shiny Apps/ProjetoAppCrime")
-#base_crime_pre <- read.csv("Base_Crimes_FEE.csv", header=T, sep=";")
-#base_crime <- subset(base_crime_pre, !(Mun == "Pinto Bandeira" & Ano < 2013)) # Retira os dados que daram problemas depois
-#mapa_rs <-  readOGR("C:/Users/renan/Desktop/Shiny Apps/Shapes", "43mu2500gsd", encoding='UTF-8', verbose = FALSE)
-##mapa_rs <-  readOGR("C:/Users/Windows 8.1/Desktop/Shiny Apps", "43mu2500gsd", encoding='UTF-8', verbose = FALSE)
-
-#load("C:/Users/renan/Desktop/Shiny Apps/ProjetoAppCrime/Imagem_AppCrime.Rdata")
-#load("C:/Users/Windows 8.1/Desktop/Shiny Apps/ProjetoAppCrime/Imagem_AppCrime.Rdata")
-#load("srv/shiny-server/crime/Imagem_AppCrime.Rdata")
-
-#base_crime <- readRDS("BaseCrime_2016.rds") # Está em tibble
-base_crime <- readRDS("base_crimevis_2016_pop_ok.rds") # Está em tibble
+base_crime <- readRDS("base_crimevis_2016_pop_ok.rds") 
 
 base_crime$Mun <- stri_conv(as.character(base_crime$Mun), "latin1", "UTF-8")
 base_crime$Crime <- stri_conv(as.character(base_crime$Crime), "latin1", "UTF-8")
@@ -76,11 +53,10 @@ tags$style(type = 'text/css',
                            }'
 
                            ),  
-  # Application title
-  #titlePanel(paste0("- ",  "CrimeVis: Visualização da Criminalidade Anual no Rio Grande do Sul")),
+
   
-  navbarPage("CrimeVis", # Navegação
-             tabPanel("Apresentação", #Apresentação
+  navbarPage("CrimeVis",
+             tabPanel("Apresentação",
                       
                       sidebarLayout(
                         sidebarPanel(
@@ -111,8 +87,7 @@ tags$style(type = 'text/css',
                           p("O CrimeVis foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
                             a("Shiny homepage.", 
                               href = "http://www.rstudio.com/shiny")),
-						  br(),
-                          #p(em("Nota: Como os dados de criminalidade de 2016 já estão disponíveis, os dados populacionais de 2016 são as estimativas de 2015 neste aplicativo para o cálculo das taxas. Assim que as estimativas populacionais de 2016 forem calculadas, elas serão atualizadas no CrimeVis.")),						  
+						  br(),	  
                           br(),
                           h2("Características do aplicativo"),
                           p("* Visualize séries temporais dos municípios e do Estado por número de ocorrências e taxas."),
@@ -121,11 +96,17 @@ tags$style(type = 'text/css',
                           p("* Obtenha a representação municipal no Estado de maneira rápida e intuitiva."),
                           p("* Realize pesquisas rápidas na base de dados e faça o ",em("download")," dos dados."),
                           br(),
-                          h3("Contato para dúvidas, sugestões ou solicitações:"),
+                          h3("Contato para dúvidas, sugestões ou solicitações de código:"),
 						  p("Renan Xavier Cortes ",
                             a("(CONTATO)", 
-                              href = "http://www.fee.rs.gov.br/contato/", target="_blank"))
-                          #p("Renan Xavier Cortes (renan@fee.tche.br)")
+                              href = "http://www.fee.rs.gov.br/contato/", target="_blank")),
+						  
+						  br(),
+						  br(),
+						  div(img(href = "http://creativecommons.org/licenses/by/4.0/", src="https://i.creativecommons.org/l/by/4.0/88x31.png"), align = "center"),
+						  div(p("Este obra está licenciada com uma Licença"), align = "center"),
+						  div(a("Creative Commons Atribuição 4.0 Internacional",
+                              href = "http://creativecommons.org/licenses/by/4.0/", target="_blank"), align = "center")
                           )
                       )),
              navbarMenu(title = "Séries Temporais",
@@ -150,7 +131,6 @@ tags$style(type = 'text/css',
                           
                         ),
                         
-                        # Show the plots
                         mainPanel(
                           tabsetPanel(type = "tabs", 
                                       tabPanel("Municípios", plotlyOutput("ts_compara_crime_cidades")), 
@@ -189,7 +169,6 @@ tags$style(type = 'text/css',
                             
                           ),
                           
-                          # Show the plots
                           mainPanel(
                             plotlyOutput("ts_compara_cidades")
                           )
@@ -431,7 +410,6 @@ tags$style(type = 'text/css',
                           
                         ),
                         
-                        # Show the plots
                         mainPanel(
                           d3plusOutput("tree_map")
                         )
@@ -453,7 +431,6 @@ tags$style(type = 'text/css',
                         )
                       )))
   
-  # Sidebar
   
   # Fim do User Interface
 ))

@@ -5,12 +5,10 @@ library(shiny)
 library(shinydashboard)
 library(plotly)
 library(lubridate)
-#require(tidyverse)
 library(dplyr)
 library(tidyr)
 library(stringr)
 library(stringi)
-#library(radarchart)
 library(shinythemes)
 library(flexdashboard)
 library(zoo)
@@ -106,7 +104,15 @@ tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelh
                           h3("Contato para dúvidas, sugestões ou solicitações:"),
 						  p("Jéfferson Augusto Colombo, Renan Xavier Cortes, Fernando Cruz ou Luis Henrique Zanandréa Paese ",
                             a("(CONTATO)", 
-                              href = "http://www.fee.rs.gov.br/contato/", target="_blank"))
+                              href = "http://www.fee.rs.gov.br/contato/", target="_blank")),
+						  
+						  br(),
+						  br(),
+						  div(img(href = "http://creativecommons.org/licenses/by/4.0/", src="https://i.creativecommons.org/l/by/4.0/88x31.png"), align = "center"),
+						  div(p("Este obra está licenciada com uma Licença"), align = "center"),
+						  div(a("Creative Commons Atribuição 4.0 Internacional",
+						        href = "http://creativecommons.org/licenses/by/4.0/", target="_blank"), align = "center")
+						  
                           )
                       )),
 					  

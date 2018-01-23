@@ -1010,26 +1010,7 @@ shinyServer(function(input, output, session) {
 	
 	
     
-    #base_aux %>%
-    #  plot_ly(x = ~DescVarShort, 
-    #          y = ~Valor, 
-    #          type = 'bar', 
-    #          color = ~Local, 
-    #          #text = rotulo,
-    #          hoverinfo = FALSE,
-#			  hovermode = "none",
-#              text = rotulo,
-#              textposition = 'outside') %>%
-#      layout(hovermode = "none",
-#	         xaxis = list(title = ""),
-#             yaxis = list(title = "", zeroline = FALSE),
-#             title = paste0(input_tipo_dado, " em ", input_ano_trim, " (", input_ajuste, " Ajuste Sazonal)"),
-#             legend = list(orientation = 'h')) %>%
-#			 config(
-#			 #displayModeBar = T, # Mostra SEMPRE a barra de ferramentas se TRUE
-#			 #displaylogo = FALSE, # o displaylogo é o logo do Plotly
-#			 modeBarButtonsToRemove = list('pan2d', 'resetScale2d', 'autoScale2d', 'zoomIn2d','zoomOut2d', 'select2d', 'zoom2d', 'hoverClosestCartesian', 'lasso2d', 'toggleSpikelines', 'sendDataToCloud'))
-    
+
     
   })
   

@@ -1,15 +1,12 @@
 # Lista de Ícones aqui: http://fontawesome.io/icons/
-
 library(shiny)
 library(shinydashboard)
 library(plotly)
 library(lubridate)
-#require(tidyverse)
 library(dplyr)
 library(tidyr)
 library(stringr)
 library(stringi)
-#library(radarchart)
 library(flexdashboard)
 library(zoo)
 library(formattable)

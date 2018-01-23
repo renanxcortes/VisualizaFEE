@@ -1,53 +1,41 @@
-# Setup Inicial (para cria??o da imagem)
-##setwd("C:/Users/Windows 8.1/Desktop/Shiny Apps/DemografiaVis")
-#setwd("C:/Users/renan/Desktop/Shiny Apps/DemografiaVis")
-#base_pre <- read.csv("Base_Demog_Faixas_novo.csv", header=T, sep=";")
-#base <- subset(base_pre, !(Mun == "Pinto Bandeira" & Ano < 2013))
-#df_pre <- tbl_df(base)
-#save.image()
-require(dplyr)
-#library(plotly)
-#library(tidyr)
-require(plotly)
-require(stringi)
-require(tidyverse)
-require(leaflet)
-require(shinythemes) # TAVA FALTANDO ISSO
-require(d3plus)
-require(DT) # Data tables
+# Packages
+library(dplyr)
+library(plotly)
+library(stringi)
+library(tidyverse)
+library(leaflet)
+library(shinythemes)
+library(D3plusR)
+library(DT) 
 
 
-#load("C:/Users/renan/Desktop/Shiny Apps/ProjetoAppCrime/Imagem_AppCrime.Rdata")
-#load("C:/Users/Windows 8.1/Desktop/Shiny Apps/ProjetoAppCrime/Imagem_AppCrime.Rdata")
-#load("srv/shiny-server/crime/Imagem_AppCrime.Rdata")
-
-
-
-#df_pre_pre <- readRDS("DemoVisBase.rds")
 df_pre_pre <- readRDS("popvisBase_2016.rds")
 
 corresp <- readRDS("Corresp_Mun_PopRS.rds")
 df_pre <- inner_join(df_pre_pre, corresp, by = "CodIBGE")
-#df_pre <- readRDS("df_pre_joineado.rds")
 df_proj <- readRDS("proj_rs.rds")
 df_pre$Mun <- stri_conv(as.character(df_pre$Mun), "latin1", "UTF-8")
 df_pre$Classe <- stri_conv(as.character(df_pre$Classe), "latin1", "UTF-8")
 df_pre$Corede <- stri_conv(as.character(df_pre$Corede), "latin1", "UTF-8")
 
 
-
-
-#df_pre$Mun <- stri_conv(as.character(df_pre$Mun), "latin1", "UTF-8")
-#df_pre$Classe <- stri_conv(as.character(df_pre$Classe), "latin1", "UTF-8")
-#load('DemoVisBase.rds')
-
-# NO USER INTERFACE NÃO PODE FAZER A LEITURA DOS MAPAS!!
-
 options(shiny.sanitize.errors = FALSE)
 
 # Definindo o UI
-shinyUI(fluidPage(includeCSS("estilodemo.css"), 
-                  htmlOutput("frame"), theme = shinytheme("cerulean"), tags$head(tags$script(src="tracking.js")), tags$head(tags$link(rel="shortcut icon", href="feeicon.ico")),
+shinyUI(function(request){fluidPage(includeCSS("estilodemo.css"), 
+
+				 tags$iframe(src="https://datavis2.fee.tche.br/frame/frame.html", 
+                           height="31px", 
+                           width = "100%", 
+                           borderbottom = "1px",
+                           solid = "#6CB3D4",     
+                           bordertop = "0px",
+                           borderleft = "0px",
+                           borderright = "0px",
+                           margin = "0px",
+                           padding= "0px"),
+						   
+				  theme = shinytheme("cerulean"), tags$head(tags$script(src="tracking.js")), tags$head(tags$link(rel="shortcut icon", href="feeicon.ico")),
                   tags$div(
                     HTML("<script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -73,16 +61,9 @@ tags$style(type = 'text/css',
                            }'
 
                            ),
-
-                  #tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelha de erro!!
-                  #  ".shiny-output-error { visibility: hidden; }",
-                  #  ".shiny-output-error:before { visibility: hidden; }"
-                  #), 	
                   
-                  #titlePanel("Portal Demográfico FEE"),
-                  
-                  navbarPage("PopVis",
-                             tabPanel("Apresentação",
+                  navbarPage(id = "navegation_bar", "PopVis",
+                             tabPanel(id = "home_page", "Apresentação",
                                       
                                       sidebarLayout(
                                         sidebarPanel(
@@ -120,14 +101,21 @@ tags$style(type = 'text/css',
                                           p("* Faça qualquer análise para qualquer gênero ou grupo etário."),
 										  p("* Realize o ",em("download")," dos dados."),
                                           br(),
-                                          h3("Contato para dúvidas, sugestões ou solicitações:"),
+                                          h3("Contato para dúvidas, sugestões ou solicitações de código:"),
                                           p("Renan Xavier Cortes ou Pedro Tonon Zuanazzi ", a("(CONTATO)", 
-                                                                                              href = "http://www.fee.rs.gov.br/contato/", target="_blank"))
+                                                                                              href = "http://www.fee.rs.gov.br/contato/", target="_blank")),
+						  
+						  br(),
+						  br(),
+						  div(img(href = "http://creativecommons.org/licenses/by/4.0/", src="https://i.creativecommons.org/l/by/4.0/88x31.png"), align = "center"),
+						  div(p("Este obra está licenciada com uma Licença"), align = "center"),
+						  div(a("Creative Commons Atribuição 4.0 Internacional",
+                              href = "http://creativecommons.org/licenses/by/4.0/", target="_blank"), align = "center")
                                         )
                                       )),
                              navbarMenu(title = "Pirâmides Etárias",
                                         
-                                        tabPanel("Municípios",
+                                        tabPanel(id = "piramides_municipios", "Municípios",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -148,18 +136,28 @@ tags$style(type = 'text/css',
                                                      
                                                      
                                                      leafletOutput("mapinha_municipios"),
+													 
                                                      br(),
+                          div(bookmarkButton(id = "book_piramides_municipios",
+                                               label = "Compartilhe...",
+                                               icon = icon("share-alt"),
+                                               title = "Compartilhe essa informação!"), align = "center"),
+											   
+											   br(),
+											   
                                                      p("Inspirado numa aplicação do ", a("Center for Urban Studies", href = "http://urbanstudies.tcu.edu/", target="_blank")," do Texas Christian University.")
                                                      
                                                    ),
                                                    mainPanel(
                                                      plotlyOutput("piramide_municipio"),
 													 br(),
+													 #div(h4("População"), align = "center"),
+                                            		 div(tableOutput("pop_municipio_piramide"), align = "center"),
 										p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
                             href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
                                                    ))),
                                         
-                                        tabPanel("Coredes",
+                                        tabPanel(id = "piramides_coredes", "Coredes",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -180,17 +178,26 @@ tags$style(type = 'text/css',
                                                      
                                                      leafletOutput("mapinha_corede"),
                                                      br(),
+                          div(bookmarkButton(id = "book_piramides_coredes",
+                                               label = "Compartilhe...",
+                                               icon = icon("share-alt"),
+                                               title = "Compartilhe essa informação!"), align = "center"),
+											   
+											   br(),
+											   
                                                      p("Inspirado numa aplicação do ", a("Center for Urban Studies", href = "http://urbanstudies.tcu.edu/", target="_blank")," do Texas Christian University.")
                                                      
                                                    ),
                                                    mainPanel(
                                                      plotlyOutput("piramide_corede"),
 													 br(),
+													 #div(h4("População"), align = "center"),
+                                            		 div(tableOutput("pop_corede_piramide"), align = "center"),
 										p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
                             href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
                                                    ))),
                                         
-                                        tabPanel("Regiões Funcionais",
+                                        tabPanel(id = "piramides_rf", "Regiões Funcionais",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -211,17 +218,25 @@ tags$style(type = 'text/css',
                                                      
                                                      leafletOutput("mapinha_rf"),
                                                      br(),
+                          div(bookmarkButton(id = "book_piramides_rf",
+                                               label = "Compartilhe...",
+                                               icon = icon("share-alt"),
+                                               title = "Compartilhe essa informação!"), align = "center"),
+											   
+											   br(),
+											   
                                                      p("Inspirado numa aplicação do ", a("Center for Urban Studies", href = "http://urbanstudies.tcu.edu/", target="_blank")," do Texas Christian University.")
                                                      
                                                    ),
                                                    mainPanel(
                                                      plotlyOutput("piramide_rf"),
 													 br(),
+                                            		 div(tableOutput("pop_rf_piramide"), align = "center"),
 										p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
                             href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
                                                    ))),	  
                                         
-                                        tabPanel("Estado",
+                                        tabPanel(id = "piramides_estado", "Estado",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -234,6 +249,13 @@ tags$style(type = 'text/css',
                                                                  animate = animationOptions(interval = 1000, loop = FALSE), sep=''),
                                                      
                                                      br(),
+                          div(bookmarkButton(id = "book_piramides_estado",
+                                               label = "Compartilhe...",
+                                               icon = icon("share-alt"),
+                                               title = "Compartilhe essa informação!"), align = "center"),
+											   
+											   br(),
+											   
                                                      p("Inspirado numa aplicação do ", a("Center for Urban Studies", href = "http://urbanstudies.tcu.edu/", target="_blank")," do Texas Christian University.")
                                                      
                                                      
@@ -241,11 +263,12 @@ tags$style(type = 'text/css',
                                                    mainPanel(
                                                      plotlyOutput("piramide_rs"),
 													 br(),
+                                            		 div(tableOutput("pop_rs_piramide"), align = "center"),
 										p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
                             href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
                                                    ))),
                                         
-                                        tabPanel("Projeção Estadual",
+                                        tabPanel(id = "piramides_projecao", "Projeção Estadual",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -258,6 +281,13 @@ tags$style(type = 'text/css',
                                                                  animate = animationOptions(interval = 1000, loop = FALSE), sep=''),
                                                      
                                                      br(),
+                          div(bookmarkButton(id = "book_piramides_projecoes",
+                                               label = "Compartilhe...",
+                                               icon = icon("share-alt"),
+                                               title = "Compartilhe essa informação!"), align = "center"),
+											   
+											   br(),
+											   
                                                      p("Inspirado numa aplicação do ", a("Center for Urban Studies", href = "http://urbanstudies.tcu.edu/", target="_blank")," do Texas Christian University.")
                                                      
                                                      
@@ -265,6 +295,8 @@ tags$style(type = 'text/css',
                                                    mainPanel(
                                                      plotlyOutput("piramide_rs_proj"),
 													 br(),
+													 div(h4("População"), align = "center"),
+                                            		 div(tableOutput("pop_proj_piramide"), align = "center"),
 										p('Fonte dos Dados: ', a('Projeções populacionais IBGE – Revisão 2013', 
                             href = 'http://www.ibge.gov.br/home/estatistica/populacao/projecao_da_populacao/2013/default.shtm', target = '_blank'))
                                                    )))
@@ -274,127 +306,357 @@ tags$style(type = 'text/css',
                              
                              navbarMenu(title = "Mapas",
                                         
-                                        tabPanel("Municípios",
-                                                 
+                                        tabPanel(id = "mapas_municipios", "Municípios",
+                                        	tabsetPanel(type = 'tabs',
+                                        		tabPanel(id = "mapa_bruto_municipios", "População Bruta",
                                                  sidebarLayout(
                                                    sidebarPanel(
                                                      
-                                                     sliderInput('ano_mapa', 'Ano a ser escolhido', 
+                                                     sliderInput('ano_mapa_t1', 'Ano a ser escolhido', 
                                                                  min = min(df_pre$Ano),
                                                                  max = max(df_pre$Ano),
                                                                  value = max(df_pre$Ano),
                                                                  step = 1,
                                                                  animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
                                                      
-                                                     radioButtons("genero_mapa", "Tipo de Informação:",
+                                                     radioButtons("genero_mapa_t1", "Tipo de Informação:",
                                                                   c("Total" = "total_mapa_radio",
                                                                     "Homens" = "homens_mapa_radio",
                                                                     "Mulheres" = "mulheres_mapa_radio")),
                                                      
-                                                     selectizeInput('classe_mapa', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                     selectizeInput('classe_mapa_t1', 'Selecione uma ou mais Faixas Etárias (em anos)', 
                                                                     sort(as.character(unique(df_pre$Classe))),
                                                                     selected = "Total",
                                                                     
                                                                     options = list(maxItems = 50,
                                                                                    placeholder = 'Selecione uma lista de faixas...')),
                                                      
-                                                     sliderInput("sens_mapa", "Sensibilidade dos Círculos do Mapa:", 
-                                                                 min=1.5, max=2.5, value=2)
+                                                     sliderInput("sens_mapa_t1", "Sensibilidade dos Círculos do Mapa:", 
+                                                                 min=1.5, max=2.5, value=2),
                                                      
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_municipios_t1",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
                                                      
                                                    ),
                                                    mainPanel(
-                                                     tabsetPanel(type = "tabs",
-                                                                 tabPanel("População Bruta", leafletOutput("mapa_genero")),
-                                                                 tabPanel("Percentual (%) no município", leafletOutput("mapa_genero_percent")),
-																 tabPanel(paste0("Variação (%) no período ", min(df_pre$Ano),"-",max(df_pre$Ano)), leafletOutput("mapa_genero_variacao"))
-                                                     ),
-													 br(),
-										p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
-                            href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank')))
-                                                 )),
-                                        
-                                        
-                                        tabPanel("Coredes",
-                                                 
+                                                   		leafletOutput("mapa_genero"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   )),
+                                        		tabPanel(id = "mapa_perc_municipios", "Percentual (%) no Município",
                                                  sidebarLayout(
                                                    sidebarPanel(
                                                      
-                                                     sliderInput('ano_mapa_cr', 'Ano a ser escolhido', 
+                                                     sliderInput('ano_mapa_t2', 'Ano a ser escolhido', 
                                                                  min = min(df_pre$Ano),
                                                                  max = max(df_pre$Ano),
                                                                  value = max(df_pre$Ano),
                                                                  step = 1,
                                                                  animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
                                                      
-                                                     radioButtons("genero_mapa_cr", "Tipo de Informação:",
+                                                     radioButtons("genero_mapa_t2", "Tipo de Informação:",
                                                                   c("Total" = "total_mapa_radio",
                                                                     "Homens" = "homens_mapa_radio",
                                                                     "Mulheres" = "mulheres_mapa_radio")),
                                                      
-                                                     selectizeInput('classe_mapa_cr', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                     selectizeInput('classe_mapa_t2', 'Selecione uma ou mais Faixas Etárias (em anos)', 
                                                                     sort(as.character(unique(df_pre$Classe))),
                                                                     selected = "Total",
                                                                     
                                                                     options = list(maxItems = 50,
-                                                                                   placeholder = 'Selecione uma lista de faixas...')),
-                                                     
-                                                     sliderInput("sens_mapa_cr", "Sensibilidade dos Círculos do Mapa:", 
-                                                                 min=1.5, max=2.5, value=2)
-                                                     
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),                                       
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_municipios_t2",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
                                                      
                                                    ),
                                                    mainPanel(
-                                                     tabsetPanel(type = "tabs",
-                                                                 tabPanel("População Bruta", leafletOutput("mapa_genero_cr")),
-                                                                 tabPanel("Percentual (%) no Corede", leafletOutput("mapa_genero_cr_percent")),
-																 tabPanel(paste0("Variação (%) no período ", min(df_pre$Ano),"-",max(df_pre$Ano)), leafletOutput("mapa_genero_cr_variacao"))
-                                                     ),
-													 br(),
-										p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
-                            href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank')))
-                                                 )),
-                                        
-                                        
-                                        tabPanel("Regiões Funcionais",
-                                                 
+                                                   		leafletOutput("mapa_genero_percent"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   )),
+                                        		tabPanel(id = "mapa_var_municipios", "Variação (%) no Período Escolhido",
                                                  sidebarLayout(
                                                    sidebarPanel(
                                                      
-                                                     sliderInput('ano_mapa_rf', 'Ano a ser escolhido', 
+                                                     sliderInput('ano_mapa_t3', 'Ano a ser escolhido', 
+                                                                 min = min(df_pre$Ano),
+                                                                 max = max(df_pre$Ano),
+                                                                 value = c(min(df_pre$Ano),max(df_pre$Ano)),
+                                                                 step = 1,
+                                                                 sep=''),
+                                                     
+                                                     radioButtons("genero_mapa_t3", "Tipo de Informação:",
+                                                                  c("Total" = "total_mapa_radio",
+                                                                    "Homens" = "homens_mapa_radio",
+                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                     
+                                                     selectizeInput('classe_mapa_t3', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                                    sort(as.character(unique(df_pre$Classe))),
+                                                                    selected = "Total",
+                                                                    
+                                                                    options = list(maxItems = 50,
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),                                       
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_municipios_t3",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
+                                                     
+                                                   ),
+                                                   mainPanel(
+                                                   		h4(textOutput("titulo_mapa_genero_variacao"), align = "center"),
+                                                   		leafletOutput("mapa_genero_variacao"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   ))
+                                        		)),                                       
+                                        
+                                        tabPanel(id = "mapas_coredes", "Coredes",
+                                        	tabsetPanel(type = 'tabs',
+                                        		tabPanel(id = "mapa_bruto_corede", "População Bruta",
+                                                 sidebarLayout(
+                                                   sidebarPanel(
+                                                     
+                                                     sliderInput('ano_mapa_cr_t1', 'Ano a ser escolhido', 
                                                                  min = min(df_pre$Ano),
                                                                  max = max(df_pre$Ano),
                                                                  value = max(df_pre$Ano),
                                                                  step = 1,
                                                                  animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
                                                      
-                                                     radioButtons("genero_mapa_rf", "Tipo de Informação:",
+                                                     radioButtons("genero_mapa_cr_t1", "Tipo de Informação:",
                                                                   c("Total" = "total_mapa_radio",
                                                                     "Homens" = "homens_mapa_radio",
                                                                     "Mulheres" = "mulheres_mapa_radio")),
                                                      
-                                                     selectizeInput('classe_mapa_rf', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                     selectizeInput('classe_mapa_cr_t1', 'Selecione uma ou mais Faixas Etárias (em anos)', 
                                                                     sort(as.character(unique(df_pre$Classe))),
                                                                     selected = "Total",
                                                                     
                                                                     options = list(maxItems = 50,
                                                                                    placeholder = 'Selecione uma lista de faixas...')),
                                                      
-                                                     sliderInput("sens_mapa_rf", "Sensibilidade dos Círculos do Mapa:", 
-                                                                 min=1.5, max=2.5, value=2)
+                                                     sliderInput("sens_mapa_cr_t1", "Sensibilidade dos Círculos do Mapa:", 
+                                                                 min=1.5, max=2.5, value=2),
                                                      
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_coredes_t1",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
                                                      
                                                    ),
                                                    mainPanel(
-                                                     tabsetPanel(type = "tabs",
-                                                                 tabPanel("População Bruta", leafletOutput("mapa_genero_rf")),
-                                                                 tabPanel("Percentual (%) na Região Funcional", leafletOutput("mapa_genero_rf_percent")),
-																 tabPanel(paste0("Variação (%) no período ", min(df_pre$Ano),"-",max(df_pre$Ano)), leafletOutput("mapa_genero_rf_variacao"))
-                                                     ),
-													 br(),
-										p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
-                            href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank')))
-                                                 ))
+                                                   		leafletOutput("mapa_genero_cr"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   )),
+                                        		tabPanel(id = "mapa_perc_coredes", "Percentual (%) nos Coredes",
+                                                 sidebarLayout(
+                                                   sidebarPanel(
+                                                     
+                                                     sliderInput('ano_mapa_cr_t2', 'Ano a ser escolhido', 
+                                                                 min = min(df_pre$Ano),
+                                                                 max = max(df_pre$Ano),
+                                                                 value = max(df_pre$Ano),
+                                                                 step = 1,
+                                                                 animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
+                                                     
+                                                     radioButtons("genero_mapa_cr_t2", "Tipo de Informação:",
+                                                                  c("Total" = "total_mapa_radio",
+                                                                    "Homens" = "homens_mapa_radio",
+                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                     
+                                                     selectizeInput('classe_mapa_cr_t2', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                                    sort(as.character(unique(df_pre$Classe))),
+                                                                    selected = "Total",
+                                                                    
+                                                                    options = list(maxItems = 50,
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),                                       
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_coredes_t2",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
+                                                     
+                                                   ),
+                                                   mainPanel(
+                                                   		leafletOutput("mapa_genero_cr_percent"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   )),
+                                        		tabPanel(id = "mapa_var_municipios", "Variação (%) no Período Escolhido",
+                                                 sidebarLayout(
+                                                   sidebarPanel(
+                                                     
+                                                     sliderInput('ano_mapa_cr_t3', 'Ano a ser escolhido', 
+                                                                 min = min(df_pre$Ano),
+                                                                 max = max(df_pre$Ano),
+                                                                 value = c(min(df_pre$Ano),max(df_pre$Ano)),
+                                                                 step = 1,
+                                                                 sep=''),
+                                                     
+                                                     radioButtons("genero_mapa_cr_t3", "Tipo de Informação:",
+                                                                  c("Total" = "total_mapa_radio",
+                                                                    "Homens" = "homens_mapa_radio",
+                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                     
+                                                     selectizeInput('classe_mapa_cr_t3', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                                    sort(as.character(unique(df_pre$Classe))),
+                                                                    selected = "Total",
+                                                                    
+                                                                    options = list(maxItems = 50,
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),                                       
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_coredes_t3",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
+                                                     
+                                                   ),
+                                                   mainPanel(
+                                                   		h4(textOutput("titulo_mapa_genero_cr_variacao"), align = "center"),
+                                                   		leafletOutput("mapa_genero_cr_variacao"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   ))
+                                        		)),
+                                        
+                                        
+                                        tabPanel(id = "mapas_rf", "Regiões Funcionais",
+                                        	tabsetPanel(type = 'tabs',
+                                        		tabPanel(id = "mapa_bruto_rf", "População Bruta",
+                                                 sidebarLayout(
+                                                   sidebarPanel(
+                                                     
+                                                     sliderInput('ano_mapa_rf_t1', 'Ano a ser escolhido', 
+                                                                 min = min(df_pre$Ano),
+                                                                 max = max(df_pre$Ano),
+                                                                 value = max(df_pre$Ano),
+                                                                 step = 1,
+                                                                 animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
+                                                     
+                                                     radioButtons("genero_mapa_rf_t1", "Tipo de Informação:",
+                                                                  c("Total" = "total_mapa_radio",
+                                                                    "Homens" = "homens_mapa_radio",
+                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                     
+                                                     selectizeInput('classe_mapa_rf_t1', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                                    sort(as.character(unique(df_pre$Classe))),
+                                                                    selected = "Total",
+                                                                    
+                                                                    options = list(maxItems = 50,
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),
+                                                     
+                                                     sliderInput("sens_mapa_rf_t1", "Sensibilidade dos Círculos do Mapa:", 
+                                                                 min=1.5, max=2.5, value=2),
+                                                     
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_rf_t1",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
+                                                     
+                                                   ),
+                                                   mainPanel(
+                                                   		leafletOutput("mapa_genero_rf"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   )),
+                                        		tabPanel(id = "mapa_perc_rf", "Percentual (%) nas Regiões Funcionais",
+                                                 sidebarLayout(
+                                                   sidebarPanel(
+                                                     
+                                                     sliderInput('ano_mapa_rf_t2', 'Ano a ser escolhido', 
+                                                                 min = min(df_pre$Ano),
+                                                                 max = max(df_pre$Ano),
+                                                                 value = max(df_pre$Ano),
+                                                                 step = 1,
+                                                                 animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
+                                                     
+                                                     radioButtons("genero_mapa_rf_t2", "Tipo de Informação:",
+                                                                  c("Total" = "total_mapa_radio",
+                                                                    "Homens" = "homens_mapa_radio",
+                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                     
+                                                     selectizeInput('classe_mapa_rf_t2', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                                    sort(as.character(unique(df_pre$Classe))),
+                                                                    selected = "Total",
+                                                                    
+                                                                    options = list(maxItems = 50,
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),                                       
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_rf_t2",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
+                                                     
+                                                   ),
+                                                   mainPanel(
+                                                   		leafletOutput("mapa_genero_rf_percent"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   )),
+                                        		tabPanel(id = "mapa_var_rf", "Variação (%) no Período Escolhido",
+                                                 sidebarLayout(
+                                                   sidebarPanel(
+                                                     
+                                                     sliderInput('ano_mapa_rf_t3', 'Ano a ser escolhido', 
+                                                                 min = min(df_pre$Ano),
+                                                                 max = max(df_pre$Ano),
+                                                                 value = c(min(df_pre$Ano),max(df_pre$Ano)),
+                                                                 step = 1,
+                                                                 sep=''),
+                                                     
+                                                     radioButtons("genero_mapa_rf_t3", "Tipo de Informação:",
+                                                                  c("Total" = "total_mapa_radio",
+                                                                    "Homens" = "homens_mapa_radio",
+                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                     
+                                                     selectizeInput('classe_mapa_rf_t3', 'Selecione uma ou mais Faixas Etárias (em anos)', 
+                                                                    sort(as.character(unique(df_pre$Classe))),
+                                                                    selected = "Total",
+                                                                    
+                                                                    options = list(maxItems = 50,
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),                                       
+													  br(),
+							                          div(bookmarkButton(id = "book_mapas_rf_t3",
+							                                               label = "Compartilhe...",
+							                                               icon = icon("share-alt"),
+							                                               title = "Compartilhe essa informação!"), align = "center")
+                                                     
+                                                   ),
+                                                   mainPanel(
+                                                   		h4(textOutput("titulo_mapa_genero_rf_variacao"), align = "center"),
+                                                   		leafletOutput("mapa_genero_rf_variacao"),
+                                                   		br(),
+                                                   		p('Fonte dos Dados: ', a(paste('Estimativas Populacionais FEE – Revisão', max(df_pre$Ano)), 
+                          								href = 'http://www.fee.rs.gov.br/indicadores/populacao/estimativas-populacionais/', target = '_blank'))
+                                                   	)
+                                                   ))
+                                        		))
                                         
                                         
                                         
@@ -406,7 +668,7 @@ tags$style(type = 'text/css',
                              
                              navbarMenu(title = "Representação no estado",
                                         
-                                        tabPanel("Municípios",
+                                        tabPanel(id = "representacao_municipios", "Municípios",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -419,16 +681,22 @@ tags$style(type = 'text/css',
                                                                  animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
                                                      
                                                      radioButtons("genero_tree_mun", "Tipo de Informação:",
-                                                                  c("Total" = "total_mapa_radio",
-                                                                    "Homens" = "homens_mapa_radio",
-                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                                  c("Total" = "total_tree_radio_mun",
+                                                                    "Homens" = "homens_tree_radio_mun",
+                                                                    "Mulheres" = "mulheres_tree_radio_mun")),
                                                      
                                                      selectizeInput('classe_tree_mun', 'Selecione uma ou mais Faixas Etárias (em anos)', 
                                                                     sort(as.character(unique(df_pre$Classe))),
                                                                     selected = "Total",
                                                                     
                                                                     options = list(maxItems = 50,
-                                                                                   placeholder = 'Selecione uma lista de faixas...'))
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),
+																				   
+						  br(),
+                          div(bookmarkButton(id = "book_representacao_municipios",
+                                               label = "Compartilhe...",
+                                               icon = icon("share-alt"),
+                                               title = "Compartilhe essa informação!"), align = "center")
                                                      
                                                      
                                                    ),
@@ -441,7 +709,7 @@ tags$style(type = 'text/css',
                                                  )),
                                         
                                         
-                                        tabPanel("Coredes",
+                                        tabPanel(id = "representacao_coredes", "Coredes",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -454,16 +722,22 @@ tags$style(type = 'text/css',
                                                                  animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
                                                      
                                                      radioButtons("genero_tree_cr", "Tipo de Informação:",
-                                                                  c("Total" = "total_mapa_radio",
-                                                                    "Homens" = "homens_mapa_radio",
-                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                                  c("Total" = "total_tree_radio_cr",
+                                                                    "Homens" = "homens_tree_radio_cr",
+                                                                    "Mulheres" = "mulheres_tree_radio_cr")),
                                                      
                                                      selectizeInput('classe_tree_cr', 'Selecione uma ou mais Faixas Etárias (em anos)', 
                                                                     sort(as.character(unique(df_pre$Classe))),
                                                                     selected = "Total",
                                                                     
                                                                     options = list(maxItems = 50,
-                                                                                   placeholder = 'Selecione uma lista de faixas...'))
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),
+																				   
+						  br(),
+                          div(bookmarkButton(id = "book_representacao_coredes",
+                                               label = "Compartilhe...",
+                                               icon = icon("share-alt"),
+                                               title = "Compartilhe essa informação!"), align = "center")
                                                      
                                                      
                                                    ),
@@ -475,7 +749,7 @@ tags$style(type = 'text/css',
                                                    )
                                                  )),
                                         
-                                        tabPanel("Regiões Funcionais",
+                                        tabPanel(id = "representacao_rf", "Regiões Funcionais",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -488,16 +762,23 @@ tags$style(type = 'text/css',
                                                                  animate = animationOptions(interval = 1500, loop = FALSE), sep=''),
                                                      
                                                      radioButtons("genero_tree_rf", "Tipo de Informação:",
-                                                                  c("Total" = "total_mapa_radio",
-                                                                    "Homens" = "homens_mapa_radio",
-                                                                    "Mulheres" = "mulheres_mapa_radio")),
+                                                                  c("Total" = "total_tree_radio_rf",
+                                                                    "Homens" = "homens_tree_radio_rf",
+                                                                    "Mulheres" = "mulheres_tree_radio_rf")),
                                                      
                                                      selectizeInput('classe_tree_rf', 'Selecione uma ou mais Faixas Etárias (em anos)', 
                                                                     sort(as.character(unique(df_pre$Classe))),
                                                                     selected = "Total",
                                                                     
                                                                     options = list(maxItems = 50,
-                                                                                   placeholder = 'Selecione uma lista de faixas...'))
+                                                                                   placeholder = 'Selecione uma lista de faixas...')),
+																				   
+																				   
+						  br(),
+                          div(bookmarkButton(id = "book_representacao_rf",
+                                               label = "Compartilhe...",
+                                               icon = icon("share-alt"),
+                                               title = "Compartilhe essa informação!"), align = "center")
                                                      
                                                      
                                                    ),
@@ -509,47 +790,10 @@ tags$style(type = 'text/css',
                                                    )
                                                  ))),
                              
-                             #navbarMenu(title = "Tabelas e Download",
-                             #           tabPanel("Estimativas",
-                             #                    
-                             #                    sidebarLayout(
-                             #                      sidebarPanel(
-                             #                        h2("Tabela de Dados"),
-                             #                        p("Pesquise as informações de seu interesse ao lado."),
-                             #                        br(),
-                             #                        p("Se você deseja fazer o ", strong("download"), "da base completa, clique no ícone abaixo."),
-                             #                        downloadButton('downloadData', 'Baixar .csv')
-                             #                      ),
-                             #                      
-                             #                      # Show the plots
-                             #                      mainPanel(
-                             #                        dataTableOutput("tabela")
-                             #                      )
-                             #                    )),
-                             #           
-                             #           tabPanel("Projeções",
-                             #                    
-                             #                    sidebarLayout(
-                             #                      sidebarPanel(
-                             #                        h2("Tabela de Dados"),
-                             #                        p("Pesquise as informações de seu interesse ao lado."),
-                             #                        br(),
-                             #                        p("Se você deseja fazer o ", strong("download"), "da base completa, clique no ícone abaixo."),
-                             #                        downloadButton('downloadData', 'Baixar .csv')
-                             #                      ),
-                             #                      
-                             #                      # Show the plots
-                             #                      mainPanel(
-                             #                        dataTableOutput("tabela_proj")
-                             #                      )
-                             #                    ))
-                             #           
-                             #           
-                             #)
                              
                              navbarMenu(title = "Download dos Dados",
                                         
-                                        tabPanel("Estimativas",
+                                        tabPanel(id = "download_estimativas", "Estimativas",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -567,7 +811,7 @@ tags$style(type = 'text/css',
                                                  )),
                                         
                                         
-                                        tabPanel("Projeções",
+                                        tabPanel(id = "download_projecoes", "Projeções",
                                                  
                                                  sidebarLayout(
                                                    sidebarPanel(
@@ -578,7 +822,6 @@ tags$style(type = 'text/css',
                                                      downloadButton('downloadData_proj', 'Baixar .csv')
                                                    ),
                                                    
-                                                   # Show the plots
                                                    mainPanel(
                                                      dataTableOutput("tabela_proj")
                                                    )
@@ -592,4 +835,4 @@ tags$style(type = 'text/css',
                              
                              
                              
-                  )))
+                  ))})

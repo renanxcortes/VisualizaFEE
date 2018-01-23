@@ -11,10 +11,6 @@ library(collapsibleTree)
 
 options(shiny.sanitize.errors = FALSE)
 
-# setwd("C:/Users/Luis Paese/Desktop/IDESE_app/IDESEVis")
-# setwd("~/Downloads/IDESE_app/IDESEVis")
-# setwd("/srv/shiny-server/IdeseVis")
-#
 
 main_data <- readRDS("IDESE_TOTAL_V0506_1724.rds")
 main_data$VALOR[main_data$VALOR == 0] <- NA
@@ -158,13 +154,20 @@ tags$head(tags$link(rel="shortcut icon", href="feeicon.ico")),
                           div(collapsibleTreeOutput("idese_tree_struc"), align = "center"),
                           #collapsibleTreeOutput("idese_tree_struc"),
                           br(),
-                          h3("Contato para dúvidas, sugestões ou solicitações:"),
+                          h3("Contato para dúvidas, sugestões ou solicitações de código:"),
                           p("Renan Xavier Cortes ",
                             a("(CONTATO)", 
                               href = "http://www.fee.rs.gov.br/contato/", target="_blank"),
                            "e Luis Henrique Zanandréa Paese",
                             a("(CONTATO)", 
-                                href = "mailto:lhzpaese@gmail.com")
+                                href = "mailto:lhzpaese@gmail.com"),
+						  
+						  br(),
+						  br(),
+						  div(img(href = "http://creativecommons.org/licenses/by/4.0/", src="https://i.creativecommons.org/l/by/4.0/88x31.png"), align = "center"),
+						  div(p("Este obra está licenciada com uma Licença"), align = "center"),
+						  div(a("Creative Commons Atribuição 4.0 Internacional",
+                              href = "http://creativecommons.org/licenses/by/4.0/", target="_blank"), align = "center")
                           ))
                           )
                         ),

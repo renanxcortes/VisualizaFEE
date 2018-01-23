@@ -2,12 +2,10 @@ library(shiny)
 library(shinydashboard)
 library(plotly)
 library(lubridate)
-#require(tidyverse)
 library(dplyr)
 library(tidyr)
 library(stringr)
 library(stringi)
-#library(radarchart)
 library(shinythemes)
 library(flexdashboard)
 library(zoo)
@@ -176,8 +174,6 @@ base_transformada_SA <- transforma_base(base_SA)
 series_contra_ci <- NA
 base_transformada_raw <- transforma_base(base)
 base_transformada_SA_raw <- transforma_base(base_SA)
-
-# base_transformada_HP <- transforma_base(base_HP)
 
 
 base_transformada_download <- base_transformada_raw %>%
