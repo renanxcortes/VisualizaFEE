@@ -1,22 +1,9 @@
-require(tidyverse)
-require(dplyr)
-require(tidyr)
-require(stringi)
-
-base_crime <- readRDS("base_crimevis_2016_pop_ok.rds") 
-
-base_crime$Mun <- stri_conv(as.character(base_crime$Mun), "latin1", "UTF-8")
-base_crime$Crime <- stri_conv(as.character(base_crime$Crime), "latin1", "UTF-8")
-
-mapa_rs <- readRDS("MapaRS.rds")
-mapa_rs@data$Nome_Munic <- stri_conv(as.character(mapa_rs@data$Nome_Munic), "latin1", "UTF-8")
-
-cods_rmpa <- c(4300604,4300877,4301107,4303103,4303905,4304606,4304689,4305355,4306403,4306767,4307609,4307708,4309050,4309209,4309308,4310108,4310801,4312401,4313060,4313375,4313409,4314050,4314803,4314902,4316006,4317608,4318408,4318705,4319505,4319901,4320008,4321204,4322004,4323002)
-
-options(shiny.sanitize.errors = FALSE)
-
+##########
+# Server #
+##########
 
 shinyServer(function(input, output) {
+  
 
   output$frame <- renderUI({
     my_test <- tags$iframe(src="http://www.fee.tche.br/barra/index.html", 
@@ -33,14 +20,18 @@ shinyServer(function(input, output) {
     #my_test
   })
   
+  
   output$ts_compara_crime_cidades <- renderPlotly({
     
     if(length(input$crimes_compara_crimes)==0) return(NULL) # Para não aparecer uma mensagem de erro
     
     
-	
-	crimes <- stri_conv(as.character(input$crimes_compara_crimes), "UTF-8", "latin1")
-    cidade <- stri_conv(as.character(input$cidade_compara_crime), "UTF-8", "latin1")
+	# Conversão de strings para Shiny server
+	#crimes <- stri_conv(as.character(input$crimes_compara_crimes), "UTF-8", "latin1")
+  #cidade <- stri_conv(as.character(input$cidade_compara_crime), "UTF-8", "latin1")
+  
+  crimes <- input$crimes_compara_crimes
+  cidade <- input$cidade_compara_crime
 
     df_aux_ts <- filter(base_crime, Crime %in% crimes & Mun == cidade) %>%
       mutate(Taxa = round(Qtd/Populacao*100000,2))
@@ -58,7 +49,7 @@ shinyServer(function(input, output) {
     
     plot_ly(df_aux_ts2, x = ~Ano, y = ~Variavel, 
             type = 'scatter', mode = 'lines', color = ~Crime, 
-            hoverinfo = "text", # Para tirar os tooltips
+            hoverinfo="text", # Para tirar os tool tips pq a formatacao era feia
             text = ~paste0(Crime, "<br>",
                           nome, Variavel, "<br>",
                           "Ano: ", Ano)) %>%
@@ -73,7 +64,10 @@ shinyServer(function(input, output) {
     
     if(length(input$crimes_compara_crimes)==0) return(NULL)
     
-    crimes <- stri_conv(as.character(input$crimes_compara_crimes), "UTF-8", "latin1")
+    # Conversão de strings para Shiny server
+    #crimes <- stri_conv(as.character(input$crimes_compara_crimes), "UTF-8", "latin1")
+    
+    crimes <- input$crimes_compara_crimes
     
     df_aux_ts <- filter(base_crime, Crime %in% crimes) # Note que aqui não tem o filtro de Município
     
@@ -99,7 +93,7 @@ shinyServer(function(input, output) {
     
     plot_ly(df_aux_ts_rs2, x = ~Ano, y = ~Variavel, 
             type = 'scatter', mode = 'lines', color = ~Crime, 
-            hoverinfo="text", # Para tirar os tooltips
+            hoverinfo="text", # Para tirar os tool tips pq a formatacao era feia
             text = ~paste0(Crime, "<br>",
                            nome, Variavel, "<br>",
                            "Ano: ", Ano)) %>%
@@ -108,7 +102,6 @@ shinyServer(function(input, output) {
     
     
   })
-  
   
   
   output$ts_compara_cidades <- renderPlotly({
@@ -142,9 +135,12 @@ shinyServer(function(input, output) {
            union(tb2) %>%
            union(tb3) # Cria uma base que o estado e a RMPA é como se fosse um município
     
+    # Conversão de string para Shiny server
+	  # cidades <- stri_conv(as.character(input$cidades_compara), "UTF-8", "latin1")
+    # crime <- stri_conv(as.character(input$crime_compara), "UTF-8", "latin1")
     
-	cidades <- stri_conv(as.character(input$cidades_compara), "UTF-8", "latin1")
-    crime <- stri_conv(as.character(input$crime_compara), "UTF-8", "latin1") 
+    cidades <- input$cidades_compara
+    crime <- input$crime_compara
     
     if (!input$checkbox_inclui_rs_rmpa_ts)  {tb_aux <- filter(tb4, Mun %in% cidades, Crime == crime)}
     else
@@ -168,14 +164,13 @@ shinyServer(function(input, output) {
     
     plot_ly(tb_aux_ts2, x = ~Ano, y = ~Variavel, 
             type = 'scatter', mode = 'lines', color = ~Mun, 
-            hoverinfo="text", # Para tirar os tooltips
+            hoverinfo="text", # Para tirar os tool tips pq a formatacao era feia
             text = ~paste0(Mun, "<br>",
                            nome, Variavel, "<br>",
                            "Ano: ", Ano)) %>%
       layout(title = crime, yaxis = y_attr)
     
   })
-  
   
   
   output$dispersao <- renderPlotly({
@@ -188,24 +183,24 @@ shinyServer(function(input, output) {
     crime_y <- input$crimey
     
     n_grupos <- input$n_grupos_kmeans
-	
-	if(input$tipo_dado_disp == "ocorre_radio_disp") {
-	base_aux <- base_crime %>%
-	            filter(Ano == ano, Crime %in% c(crime_x, crime_y), Populacao > slider_pop_min & Populacao < slider_pop_max) %>%
-				mutate(Tx = Qtd/Populacao * 100000) %>%
-				select(-Tx) %>%
-				spread(Crime, Qtd)
-	names(base_aux)[which(names(base_aux) == crime_x)] <- "X"
-	names(base_aux)[which(names(base_aux) == crime_y)] <- "Y"
-	    }
+    
+    if(input$tipo_dado_disp == "ocorre_radio_disp") {
+      base_aux <- base_crime %>%
+        filter(Ano == ano, Crime %in% c(crime_x, crime_y), Populacao > slider_pop_min & Populacao < slider_pop_max) %>%
+        mutate(Tx = Qtd/Populacao * 100000) %>%
+        select(-Tx) %>%
+        spread(Crime, Qtd)
+      names(base_aux)[which(names(base_aux) == crime_x)] <- "X"
+      names(base_aux)[which(names(base_aux) == crime_y)] <- "Y"
+    }
     else {
-	base_aux <- base_crime %>%
-	            filter(Ano == ano, Crime %in% c(crime_x, crime_y), Populacao > slider_pop_min & Populacao < slider_pop_max) %>%
-				mutate(Tx = Qtd/Populacao * 100000) %>%
-				select(-Qtd) %>%
-				spread(Crime, Tx)
-	names(base_aux)[which(names(base_aux) == crime_x)] <- "X"
-	names(base_aux)[which(names(base_aux) == crime_y)] <- "Y"
+      base_aux <- base_crime %>%
+        filter(Ano == ano, Crime %in% c(crime_x, crime_y), Populacao > slider_pop_min & Populacao < slider_pop_max) %>%
+        mutate(Tx = Qtd/Populacao * 100000) %>%
+        select(-Qtd) %>%
+        spread(Crime, Tx)
+      names(base_aux)[which(names(base_aux) == crime_x)] <- "X"
+      names(base_aux)[which(names(base_aux) == crime_y)] <- "Y"
     }
     
     x_attr <- list(title = crime_x, showgrid = TRUE)
@@ -219,36 +214,59 @@ shinyServer(function(input, output) {
     
     if (!input$checkbox_kmeans) {
       
-      plot_ly(base_aux, x = ~X, y = ~Y, type = 'scatter', mode = 'markers', size=~base_aux$Populacao,
-              hoverinfo="text", # Para tirar os tickmarks dos pontos (tooltips)
+      plot_ly(base_aux, 
+              x = ~X, 
+              y = ~Y, 
+              type = 'scatter', 
+              mode = 'markers', 
+              size = ~base_aux$Populacao,
+              hoverinfo = "text", # Para tirar os tickmarks dos pontos (tooltips)
               text = paste0(base_aux$Mun, "<br>", 
-                           "Population: ", base_aux$Populacao, "<br>",
-                           crime_x, ": ", base_aux$X, "<br>",
-                           crime_y, ": ", base_aux$Y),
-              marker = list(opacity = 0.5, sizemode = 'diameter'), showlegend = FALSE) %>%
+                            "População: ", base_aux$Populacao, "<br>",
+                            crime_x, ": ", base_aux$X, "<br>",
+                            crime_y, ": ", base_aux$Y),
+              marker = list(opacity = 0.5, 
+                            sizemode = 'diameter'), 
+              showlegend = FALSE) %>%
         add_text(text = base_aux$Mun, textfont = t, fill=NULL, 
-                 name=paste("Hide","<br>",
-                            "or show","<br>",
-                            "city", "<br>",
-                            "name"), showlegend = TRUE, marker = NULL, visible="legendonly") %>%
-        layout(title = 'Bubble Plot',
+                 name=paste("Esconder","<br>",
+                            "ou mostrar","<br>",
+                            "nome das", "<br>",
+                            "cidades"), 
+                 showlegend = TRUE, 
+                 marker = NULL, 
+                 visible = "legendonly") %>%
+        layout(title = 'Gráfico de Bolhas',
                xaxis = x_attr,
-               yaxis = y_attr)
+               yaxis = y_attr,
+               showlegend = TRUE)
+        # Adaptação dos argumentos de showlegend para versão mais recente do plotly
       
     }
     else {
       
-      plot_ly(base_aux, x = ~X, y = ~Y, type = 'scatter', mode = 'markers', size=~base_aux$Pop, color = ~Grupos,
-              hoverinfo="text", # Para tirar os tickmarks dos pontos (tooltips)
-              text = paste("", base_aux$Grupo, "<br>",
+      plot_ly(base_aux, 
+              x = ~X, 
+              y = ~Y, 
+              type = 'scatter', 
+              mode = 'markers', 
+              size = ~base_aux$Populacao, 
+              color = ~Grupos,
+              hoverinfo = "text", # Para tirar os tickmarks dos pontos (tooltips)
+              text = paste("", base_aux$Grupos, "<br>",
                            base_aux$Mun, "<br>", 
-                           "Population :", base_aux$Pop, "<br>",
+                           "Population :", base_aux$Populacao, "<br>",
                            crime_x, ":", base_aux$X, "<br>",
                            crime_y, ":", base_aux$Y),
-              marker = list(opacity = 0.5, sizemode = 'diameter'), showlegend = FALSE) %>%
-        add_text(text = base_aux$Mun, textfont = t, fill=NULL, 
+              marker = list(opacity = 0.5, 
+                            sizemode = 'diameter'), 
+              showlegend = FALSE) %>%
+        add_text(text = base_aux$Mun, 
+                 textfont = t, 
+                 fill = NULL,
                  showlegend = TRUE,
-                 marker = NULL, visible="legendonly") %>%
+                 marker = NULL, 
+                 visible = "legendonly") %>%
         layout(title = 'Bubble Plot',
                xaxis = x_attr,
                yaxis = y_attr)
@@ -256,69 +274,85 @@ shinyServer(function(input, output) {
     }
   })
   
+  
   output$mapa_final <- renderLeaflet({
     
-    df_aux_pre <- filter(base_crime, Ano == input$ano_mapa & Crime == input$crime_mapa)
-    df_aux <- mutate(df_aux_pre, Taxa = Qtd / Populacao * 100000)
-    df_mapa <- merge(mapa_rs, df_aux, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
+    ano_mapa   <- input$ano_mapa
+    crime_mapa <- input$crime_mapa
     
-    # Este naco e para o mapa de bolhas.
-    aux <- numeric()
-    am <- numeric()
-    for (i in 1:dim(df_mapa)[1]){
-      aux <- df_mapa@polygons[[i]]@labpt
-      am <- rbind(am, aux)
-    }
-    am <- data.frame(am, row.names=NULL)
+    df_aux <- base_crime %>% 
+              filter(Ano == ano_mapa & Crime == crime_mapa) %>%
+              mutate(Taxa = Qtd / Populacao * 100000)
+    
+    df_mapa <- merge(mapa_rs, df_aux, by.x = "GEOCODIG_M", by.y = "CodIBGE", all.x = FALSE)
+    
+    # Este naco e para o mapa de bolhas (latitudes e longitudes)
+    am <- df_mapa %>% 
+          coordinates() %>% 
+          data.frame()
+    
     names(am) <- c("Long", "Lat") 
-    
     
     if (input$tipo_dado_mapa == "ocorre_radio_mapa") {
     
     gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$Qtd)
+    
     leaflet(data = df_mapa) %>% 
-      #addProviderTiles("CartoDB.Positron") %>%
 	  addTiles('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png') %>%
-      addPolygons(weight = 0.5, fillColor = ~gradiente(df_mapa$Qtd), # Weight e a grossura das bordas
-                  color = "grey", fillOpacity = 0.5, # color e a cor das bordas e o fillopacity e tranparencia
+      addPolygons(weight = 0.5, # Grossura das borda
+                  fillColor = ~gradiente(df_mapa$Qtd),
+                  color = "grey", # Cor das bordas
+                  fillOpacity = 0.5, # Tranparência
                   smoothFactor = 0.25,
                   popup = paste0(df_mapa$Nome_Munic, "<br>",
                                  "Pop.: ", df_mapa$Populacao, "<br>",
                                  "Qtd.: ", df_mapa$Qtd, "<br>",
                                  "Tx.: ", round(df_mapa$Taxa,2))) %>% 
-      addLegend(position = "bottomright", pal = gradiente,values = ~Qtd)
+      addLegend(position = "bottomright", 
+                pal = gradiente,
+                values = ~Qtd)
     
     } else { 
       if (input$tipo_dado_mapa == "taxa_radio_mapa") {
       
       gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$Taxa)
+
       leaflet(data = df_mapa) %>% 
-        #addProviderTiles("CartoDB.Positron") %>%
-		addTiles('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png') %>%
-        addPolygons(weight = 0.5, fillColor = ~gradiente(df_mapa$Taxa), # Weight e a grossura das bordas
-                    color = "grey", fillOpacity = 0.5, # color e a cor das bordas e o fillopacity e tranparencia
+		  addTiles('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png') %>%
+        addPolygons(weight = 0.5, # Grossura das borda
+                    fillColor = ~gradiente(df_mapa$Taxa), # Weight e a grossura das bordas
+                    color = "grey", # Cor das bordas
+                    fillOpacity = 0.5, # Tranparência
                     smoothFactor = 0.25,
                     popup = paste0(df_mapa$Nome_Munic, "<br>",
                                    "Pop.: ", df_mapa$Populacao, "<br>",
                                    "Qtd.: ", df_mapa$Qtd, "<br>",
                                    "Tx.: ", round(df_mapa$Taxa,2))) %>% 
-        addLegend(position = "bottomright", pal = gradiente,values = ~Taxa)
+        addLegend(position = "bottomright", 
+                  pal = gradiente,
+                  values = ~Taxa)
     }
     
       else 
       
-    leaflet(data = df_mapa) %>% addTiles() %>%
-      addCircles(lng = ~am$Long, lat = ~am$Lat, weight = 1, color = "IndianRed",
-                 radius = ~ df_mapa$Populacao ^(1/input$sens_mapa) * 30, popup = paste0(df_mapa$Nome_Munic, "<br>",
-                                                                            "Pop.: ", df_mapa$Populacao, "<br>",
-                                                                            "Qtd.: ", df_mapa$Qtd, "<br>",
-                                                                            "Tx.: ", round(df_mapa$Taxa,2)))
+    leaflet(data = df_mapa) %>% 
+      addTiles() %>%
+      addCircles(lng = ~am$Long, 
+                 lat = ~am$Lat, 
+                 weight = 1, 
+                 color = "IndianRed",
+                 radius = ~ df_mapa$Populacao ^(1/input$sens_mapa) * 30, 
+                 popup = paste0(df_mapa$Nome_Munic, "<br>",
+                                "Pop.: ", df_mapa$Populacao, "<br>",
+                                "Qtd.: ", df_mapa$Qtd, "<br>",
+                                "Tx.: ", round(df_mapa$Taxa,2)))
     
     }
     
   })
   
-    output$gauge_moran = renderGauge({
+  
+  output$gauge_moran = renderGauge({
     
     df_aux_pre <- filter(base_crime, Ano == input$ano_mapa & Crime == input$crime_mapa)
     df_aux <- mutate(df_aux_pre, Taxa = Qtd / Populacao * 100000)
@@ -355,7 +389,8 @@ shinyServer(function(input, output) {
     
   })
     
-    output$mapinha_grafo = renderPlot({
+    
+  output$mapinha_grafo = renderPlot({
       
       df_aux_pre <- filter(base_crime, Ano == input$ano_mapa & Crime == input$crime_mapa)
       df_aux <- mutate(df_aux_pre, Taxa = Qtd / Populacao * 100000)
@@ -378,8 +413,9 @@ shinyServer(function(input, output) {
       plot(df_mapa, border="grey", main="Estrutura de Dependência Espacial")
       plot(nbrsm, coordinates(df_mapa), add=TRUE, cex=0.1)
     })
+    
   
-  output$tree_map <- renderD3plus({
+  output$tree_map_antigo <- renderD3plus({
     df_aux <- filter(base_crime, Ano == input$ano_tree & Crime == input$crime_tree)
     if (input$tipo_dado_tree == "ocorre_radio_tree") {
       df <- df_aux[,c(1,5)]
@@ -394,6 +430,59 @@ shinyServer(function(input, output) {
   })
   
   
+  output$tree_map <- renderD3plus({
+    
+    ano_tree <- input$ano_tree
+    crime_tree <- input$crime_tree
+    
+    df_aux <- base_crime %>% filter(Ano == ano_tree & Crime == crime_tree)
+    
+    if (input$tipo_dado_tree == "ocorre_radio_tree") {
+      
+      df <- df_aux %>% 
+        select(Mun, Qtd) %>% 
+        rename('Ocorrências' = Qtd)
+      
+      d3plus(data = df,
+             type = "tree_map",
+             id = c('Mun'),
+             width = "100%",
+             locale = "pt_BR",
+             clean_previous = TRUE) %>%
+        d3plusSize("Ocorrências")
+      
+    }
+    else {
+      if (input$tipo_dado_tree == "pop_radio_tree") {
+      df <- df_aux %>% 
+            select(Mun, Populacao) %>%
+            rename('População' = Populacao)
+      
+      d3plus(data = df,
+             type = "tree_map",
+             id = c('Mun'),
+             width = "100%",
+             locale = "pt_BR",
+             clean_previous = TRUE) %>%
+        d3plusSize("População")
+      }
+      else {
+        df <- df_aux %>% 
+              mutate(Taxa = Qtd/Populacao * 100000) %>%
+              select(Mun, Taxa)
+        
+        d3plus(data = df,
+               type = "tree_map",
+               id = c('Mun'),
+               width = "100%",
+               locale = "pt_BR",
+               clean_previous = TRUE) %>%
+          d3plusSize("Taxa")}
+    }
+    
+  })
+  
+  
   output$tabela = renderDataTable({
     datatable(base_crime, options(list(
       language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Portuguese-Brasil.json'), 
@@ -401,9 +490,10 @@ shinyServer(function(input, output) {
   })
   
   
-    datasetInput <- reactive({
+  datasetInput <- reactive({
     base_crime
   })
+  
   
   output$downloadData <- downloadHandler(
     filename = function() { paste('base_crime', '.csv', sep='') },
@@ -411,10 +501,6 @@ shinyServer(function(input, output) {
       write.csv(datasetInput(), file, fileEncoding = "latin1")
     }
   )
-  
-  
-  
-  
   
   output$mapas_markov <- renderPlot({
 
@@ -436,6 +522,7 @@ shinyServer(function(input, output) {
     # 2 - Passou a ter crime
     # 3 - Permaneceu com crime
     # 4 - Passou a não ter crime
+    #cores_T <- c("lightgreen", "red", "black", "blue")
     cores_T <- c("#b8da6b", "#ff6d00", "#ca0000", "#ffd42a")
     # Cores http://www.ginifab.com/feeds/pms/pms_color_in_image.php
 	
@@ -471,6 +558,7 @@ shinyServer(function(input, output) {
     
   })
   
+  
   output$tabela_bruta <- renderTable({
     
     anos <- input$anos_markov
@@ -498,6 +586,7 @@ shinyServer(function(input, output) {
     
   })
   
+  
   output$estatistica_chi <- renderText({
     
     anos <- input$anos_markov
@@ -518,6 +607,7 @@ shinyServer(function(input, output) {
            "Valor-p: ", round(chisq.test(tab_bruta)$p.value, 8))
     
   })
+  
   
   output$tabela_markov_simples <- renderTable({
     
@@ -595,7 +685,6 @@ shinyServer(function(input, output) {
   }, digits = 2)
   
   
-  
   output$tabela_markov_estratificada <- renderTable({
     
     # Medida que leva em consideracao os vizinhos
@@ -667,8 +756,6 @@ shinyServer(function(input, output) {
     
     
   }, digits = 2)
-  
-  
   
   
   output$odds_ratio_estratificado <- renderTable({
@@ -772,10 +859,7 @@ shinyServer(function(input, output) {
   }, digits = 2)
   
   
-  
-  
-  
-    output$teste_chi_homog_spat <- renderText({
+  output$teste_chi_homog_spat <- renderText({
     
     anos <- input$anos_markov
     ano_inicial <-anos[1]
@@ -810,7 +894,12 @@ shinyServer(function(input, output) {
     names(df_aux_pre_markov_NB)[5] <- "Final"
     
     # Tabela Bruta
-    tab_bruta_NB <- table(as.factor(df_aux_pre_markov_NB$Inicial), as.factor(df_aux_pre_markov_NB$Final)) 
+    tab_bruta_NB <- table(as.factor(df_aux_pre_markov_NB$Inicial), as.factor(df_aux_pre_markov_NB$Final))
+    #prop_NB <- prop.table(tab_bruta_NB, 1) # Probabilidades de transição (proporção marginal das linhas)
+    #tab_final_NB <- cbind(rowSums(tab_bruta_NB),prop_NB)
+    
+    
+    
     
     
     # Matriz de transição B
@@ -824,6 +913,8 @@ shinyServer(function(input, output) {
     
     # Tabela Bruta
     tab_bruta_B <- table(as.factor(df_aux_pre_markov_B$Inicial), as.factor(df_aux_pre_markov_B$Final))
+    #prop_B <- prop.table(tab_bruta_B, 1) # Probabilidades de transição (proporção marginal das linhas)
+    #tab_final_B <- cbind(rowSums(tab_bruta_B),prop_B)
     
     # Tabela Final NB + B (pg. 520 paper Reis)
     f_sij <- rbind(tab_bruta_NB, tab_bruta_B)
@@ -852,11 +943,10 @@ shinyServer(function(input, output) {
   })
   
   
-  
-  
   output$evolucao_odds_temporal <- renderPlotly({
   
   crime_escolhido_crimevis <- input$crime_markov
+  #anos_escolhidos_crimevis <- input$anos_markov
   
    pares_de_anos <- list()
    for(i in 1:(length(unique(base_crime$Ano))-1)) {pares_de_anos[[i]] <- c(min(base_crime$Ano)+i-1, min(base_crime$Ano)+i)}
@@ -907,11 +997,6 @@ shinyServer(function(input, output) {
 			 )
   
   })
-  
-  
-  
-  
-  
   
   
   output$evolucao_odds_espaco_temporal <- renderPlotly({
@@ -1013,7 +1098,7 @@ shinyServer(function(input, output) {
             "Efeito da vizinhança em permanecer na presença de crime")
   aux2 <- c(theta_12, theta_21, theta_11, theta_22)
   
-  tab_odds <- aux2
+  tab_odds <- aux2 # data.frame(Descrição = aux1, Valor = aux2)
   
 }
 
@@ -1045,11 +1130,9 @@ plot_ly(aux2_espaco_temp, x = ~Ano, y = ~Odds,
   
   
   })
+
   
-  
-  
-  
-    output$teste_chi_homog_temporal <- renderText({
+  output$teste_chi_homog_temporal <- renderText({
     
     anos_janela_1 <- input$anos_markov_janela_1
     anos_janela_2 <- input$anos_markov_janela_2
@@ -1103,9 +1186,11 @@ plot_ly(aux2_espaco_temp, x = ~Ano, y = ~Odds,
     
   })
   
-
   
-  output$anos_janelas <- renderText({ paste0(c("Teste de Homogeneidade Temporal entre ", paste0(input$anos_markov_janela_1, collapse = "-"), " e ",  paste0(input$anos_markov_janela_2, collapse = "-"))) })
+  output$anos_janelas <- renderText({ paste0(c("Teste de Homogeneidade Temporal entre ", 
+                                               paste0(input$anos_markov_janela_1, collapse = "-"), 
+                                               " e ",  
+                                               paste0(input$anos_markov_janela_2, collapse = "-"))) })
   
   
   

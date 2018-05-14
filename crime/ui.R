@@ -1,62 +1,42 @@
-# Pacotes
-library(shiny)
-library(plotly)
-library(leaflet)
-library(d3plus) # devtools::install_github("jpmarindiaz/d3plus")
-library(DT)
-library(C3) # devtools::install_github("FrissAnalytics/shinyJsTutorials/widgets/C3")
-library(spdep)
-library(flexdashboard) # install.packages("flexdashboard", type = "source")
-library(tidyverse)
-library(stringi)
-library(shinyBS) # Pelos botoes de popover e tooltip
-library(shinythemes)
+##################
+# User Interface #
+##################
 
-
-base_crime <- readRDS("base_crimevis_2016_pop_ok.rds") 
-
-base_crime$Mun <- stri_conv(as.character(base_crime$Mun), "latin1", "UTF-8")
-base_crime$Crime <- stri_conv(as.character(base_crime$Crime), "latin1", "UTF-8")
-
-mapa_rs <- readRDS("MapaRS.rds")
-mapa_rs@data$Nome_Munic <- stri_conv(as.character(mapa_rs@data$Nome_Munic), "latin1", "UTF-8")
-
-cods_rmpa <- c(4300604,4300877,4301107,4303103,4303905,4304606,4304689,4305355,4306403,4306767,4307609,4307708,4309050,4309209,4309308,4310108,4310801,4312401,4313060,4313375,4313409,4314050,4314803,4314902,4316006,4317608,4318408,4318705,4319505,4319901,4320008,4321204,4322004,4323002)
-
-options(shiny.sanitize.errors = FALSE)
-
-# Definindo o UI
-shinyUI(fluidPage(includeCSS("estilocrime.css"), htmlOutput("frame"), theme = shinytheme("cerulean"), tags$head(tags$script(src="tracking.js")), tags$head(tags$link(rel="shortcut icon", href="feeicon.ico")),
+shinyUI(fluidPage(
+        includeCSS("estilocrime.css"), 
+        htmlOutput("frame"), 
+        theme = shinytheme("cerulean"), 
+        tags$head(tags$script(src="tracking.js")), 
+        tags$head(tags$link(rel="shortcut icon", href="feeicon.ico")),
         tags$div(
-  HTML("<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+                  HTML("<script>
+                  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+                  
+                  ga('create', 'UA-1506603-5', 'auto');
+                  ga('send', 'pageview');
+                  
+                  </script>
+                  ")
+        ),
+        tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelha de erro!!
+          ".shiny-output-error { visibility: hidden; }",
+          ".shiny-output-error:before { visibility: hidden; }"
+        ),
 
-  ga('create', 'UA-1506603-5', 'auto');
-  ga('send', 'pageview');
-
-</script>
-")
-),
-tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelha de erro!!
-  ".shiny-output-error { visibility: hidden; }",
-  ".shiny-output-error:before { visibility: hidden; }"
-),
-
-# Essa parte de baixo dá uma "empurradinha" pra direita o navbarheader pra aparecer o nome do app: https://stackoverflow.com/questions/9792849/how-to-insert-spaces-tabs-in-text-using-html-css
-tags$style(type = 'text/css',
-
-                           '.navbar-default .navbar-brand {
-							 padding-left: 35px;
-                           }'
-
-                           ),  
-
+        # Essa parte de baixo dá uma "empurradinha" pra direita o navbarheader pra aparecer o nome do app: https://stackoverflow.com/questions/9792849/how-to-insert-spaces-tabs-in-text-using-html-css
+        tags$style(type = 'text/css',
+        
+                                   '.navbar-default .navbar-brand {
+        							 padding-left: 35px;
+                                   }'
+        
+        ),  
   
-  navbarPage("CrimeVis",
-             tabPanel("Apresentação",
+  navbarPage("CrimeVis", # Navegação
+             tabPanel("Apresentação", 
                       
                       sidebarLayout(
                         sidebarPanel(
@@ -87,7 +67,8 @@ tags$style(type = 'text/css',
                           p("O CrimeVis foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
                             a("Shiny homepage.", 
                               href = "http://www.rstudio.com/shiny")),
-						  br(),	  
+						              br(),
+                          #p(em("Nota: Como os dados de criminalidade de 2016 já estão disponíveis, os dados populacionais de 2016 são as estimativas de 2015 neste aplicativo para o cálculo das taxas. Assim que as estimativas populacionais de 2016 forem calculadas, elas serão atualizadas no CrimeVis.")),						  
                           br(),
                           h2("Características do aplicativo"),
                           p("* Visualize séries temporais dos municípios e do Estado por número de ocorrências e taxas."),
@@ -97,7 +78,7 @@ tags$style(type = 'text/css',
                           p("* Realize pesquisas rápidas na base de dados e faça o ",em("download")," dos dados."),
                           br(),
                           h3("Contato para dúvidas, sugestões ou solicitações de código:"),
-						  p("Renan Xavier Cortes ",
+						              p("Renan Xavier Cortes ",
                             a("(CONTATO)", 
                               href = "http://www.fee.rs.gov.br/contato/", target="_blank")),
 						  
@@ -107,7 +88,7 @@ tags$style(type = 'text/css',
 						  div(p("Este obra está licenciada com uma Licença"), align = "center"),
 						  div(a("Creative Commons Atribuição 4.0 Internacional",
                               href = "http://creativecommons.org/licenses/by/4.0/", target="_blank"), align = "center")
-                          )
+                      )
                       )),
              navbarMenu(title = "Séries Temporais",
                tabPanel("Compara Crimes",
@@ -131,6 +112,7 @@ tags$style(type = 'text/css',
                           
                         ),
                         
+                        # Show the plots
                         mainPanel(
                           tabsetPanel(type = "tabs", 
                                       tabPanel("Municípios", plotlyOutput("ts_compara_crime_cidades")), 
@@ -169,6 +151,7 @@ tags$style(type = 'text/css',
                             
                           ),
                           
+                          # Show the plots
                           mainPanel(
                             plotlyOutput("ts_compara_cidades")
                           )
@@ -228,7 +211,7 @@ tags$style(type = 'text/css',
                                        plotlyOutput("dispersao")
                                      )
                                    )),
-             tabPanel("Mapas",
+       tabPanel("Mapas",
 			 
 			 mainPanel(width = 12,
                                 tabsetPanel(type = 'tabs',
@@ -289,11 +272,11 @@ tags$style(type = 'text/css',
                           leafletOutput("mapa_final"),
                           hr(),
                           conditionalPanel(condition = 'input.checkbox_moran',
-                                           fluidRow(column(4,gaugeOutput("gauge_moran"),
+                                           fluidRow(column(4, gaugeOutput("gauge_moran"),
 										                     bsTooltip("gauge_moran", title = "Autocorrelação espacial calculada", placement = "top", 
                                                                      trigger = "hover",
                                                                      options = NULL)),
-                                                    column(8,plotOutput("mapinha_grafo"))))
+                                                    column(8, plotOutput("mapinha_grafo"))))
                         )
                       ))
 					  
@@ -373,18 +356,13 @@ tags$style(type = 'text/css',
 												   
 												   conditionalPanel(condition = 'input.checkbox_inclui_evolucao_instantaneo_markoviana', br(), br(), plotlyOutput("evolucao_odds_espaco_temporal"))
 												   
-												   )
-                                  
-                                  
-                                )
-                                )
-                                
-                                
-                                )
-                      
-                      ))) # !
-					  
-					  ,
+            )
+            )
+            )
+            )
+            )
+            )
+            ),
              
              tabPanel("Representação no estado",
                       
@@ -410,6 +388,7 @@ tags$style(type = 'text/css',
                           
                         ),
                         
+                        # Show the plots
                         mainPanel(
                           d3plusOutput("tree_map")
                         )
@@ -420,7 +399,7 @@ tags$style(type = 'text/css',
                         sidebarPanel(
                           h2("Tabela de Dados"),
                           p("Pesquise as informações de seu interesse ao lado."),
-						  br(),
+						              br(),
                           p("Se você deseja fazer o ", strong("download"), "da base completa, clique no ícone abaixo."),
                           downloadButton('downloadData', 'Baixar .csv')
                         ),
@@ -430,7 +409,6 @@ tags$style(type = 'text/css',
                           dataTableOutput("tabela")
                         )
                       )))
-  
   
   # Fim do User Interface
 ))
