@@ -29,8 +29,8 @@ library(magrittr)
 options(shiny.sanitize.errors = FALSE)
 
 # Lendo quatro bases: dados brutos, com ajuste sazonal, pib bruto e pib com ajuste sazonal
-base <- readRDS("base_ciclo_V20.rds")
-base_SA <- readRDS("base_ciclo_SA_V20.rds")
+base <- readRDS("base_ciclo_V21.rds")
+base_SA <- readRDS("base_ciclo_SA_V21.rds")
 
 base_pib <- readRDS("base_pib_ciclo_V4_SEM_MES_MEDIANO.rds")
 base_pib_sa <- readRDS("base_pib_ciclo_sa_V4_SEM_MES_MEDIANO.rds")
@@ -189,52 +189,46 @@ base_transformada_SA_raw <- transforma_base(base_SA)
 
 # Cria bases amigáveis para download
 base_transformada_download <- base_transformada_raw %>%
-  select(-DescVar_Tooltips, 
-         -date, 
-         -quarter, 
-         -Serie, 
-         -Data, 
-         -date_my,
-         -NomeVarTabela, 
-         -DescVar_Tooltips, 
-         -DescVar_Original, 
-         -Cresci_Mensal_1M, 
-         -Acelera_Mensal_1M, 
-         -Acelera_Mensal_12M,
-         -Cresci_Acum_3M_JM, 
-         -Acelera_Acum_3M_JM) %>%
-  select(NomeVar:CategoriaPIB, month:Acelera_Acum_12M) %>%
-  rename(Mes = month, Ano = year, `Crescimento Mensal em 12 Meses` = Cresci_Mensal_12M, `Crescimento Acumulado em 12 Meses` = Cresci_Acum_12M, `Aceleração Acumulada em 12 Meses` = Acelera_Acum_12M)
+                              select(NomeVar, 
+                                     Fonte, 
+                                     Categoria, 
+                                     CategoriaPIB, 
+                                     month, 
+                                     year, 
+                                     Indice, 
+                                     Cresci_Mensal_12M, 
+                                     Cresci_Acum_12M, 
+                                     Acelera_Acum_12M) %>%
+                              rename(Mes = month, 
+                                     Ano = year, 
+                                     `Crescimento Mensal em 12 Meses` = Cresci_Mensal_12M, 
+                                     `Crescimento Acumulado em 12 Meses` = Cresci_Acum_12M, 
+                                     `Aceleração Acumulada em 12 Meses` = Acelera_Acum_12M)
 
 
 base_transformada_SA_download <- base_transformada_SA_raw %>%
-  select(-DescVar_Tooltips, 
-         -date, 
-         -quarter, 
-         -Serie, 
-         -Data, 
-         -date_my,
-         -NomeVarTabela, 
-         -DescVar_Tooltips, 
-         -DescVar_Original,
-         -Cresci_Mensal_12M,
-         -Acelera_Mensal_12M,
-         -Cresci_Acum_12M,
-         -Acelera_Acum_12M,
-         -Acelera_Mensal_1M,
-         -Acelera_Acum_3M_JM) %>%
-  select(NomeVar:CategoriaPIB, month:Cresci_Acum_3M_JM) %>%
-  rename(Mes = month, Ano = year, `Crescimento Mensal contra mês anterior` = Cresci_Mensal_1M, `Crescimento Acumulado com média móvel de 3 meses` = Cresci_Acum_3M_JM)
+                                 select(NomeVar, 
+                                        Fonte, 
+                                        Categoria, 
+                                        CategoriaPIB, 
+                                        month, 
+                                        year, 
+                                        Indice,
+                                        Cresci_Mensal_1M,
+                                        Cresci_Acum_3M_JM) %>%
+                                 rename(Mes = month, Ano = year, 
+                                        `Crescimento Mensal contra mês anterior` = Cresci_Mensal_1M, 
+                                        `Crescimento Acumulado com média móvel de 3 meses` = Cresci_Acum_3M_JM)
 
 
 
 
 # Cria uma base que possui dados e variações brutas sem ajuste sazonal e com ajuste sazonal 
 aux1 <- base_transformada_raw %>%
-  select(month, year, Cresci_Mensal_12M, Cresci_Acum_12M, Indice, NomeVarTabela, Categoria, Serie, Ordem) # Pega somente nesse a Categoria, pq, se não, no join ele cria um .x e .y posterior
+        select(month, year, Cresci_Mensal_12M, Cresci_Acum_12M, Indice, NomeVarTabela, Categoria, Serie, Ordem) # Pega somente nesse a Categoria, pq, se não, no join ele cria um .x e .y posterior
 
 aux2 <- base_transformada_SA_raw %>%
-  select(month, year, Cresci_Mensal_1M, Cresci_Acum_3M_JM, NomeVarTabela)
+        select(month, year, Cresci_Mensal_1M, Cresci_Acum_3M_JM, NomeVarTabela)
 
 tabela_variacoes_pre <- full_join(aux1, aux2, by = c("NomeVarTabela", "month", "year")) %>% 
                         filter(!is.na(Indice))
@@ -244,10 +238,10 @@ tabela_variacoes_pre <- full_join(aux1, aux2, by = c("NomeVarTabela", "month", "
 
 # Cria uma base auxiliar só para pegar as datas que não aparecem NA
 aux_datas <- base_transformada %>%
-  select(date_my, Data, Acelera_Mensal_12M, Cresci_Mensal_12M, Indice) %>%
-  gather(Tipo_Transformacao, Valor, Acelera_Mensal_12M, Cresci_Mensal_12M, Indice) %>%
-  na.omit() %>%
-  arrange(Data)
+             select(date_my, Data, Acelera_Mensal_12M, Cresci_Mensal_12M, Indice) %>%
+             gather(Tipo_Transformacao, Valor, Acelera_Mensal_12M, Cresci_Mensal_12M, Indice) %>%
+             na.omit() %>%
+             arrange(Data)
 
 
 

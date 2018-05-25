@@ -219,7 +219,7 @@ tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelh
                                       selected = "Nível de Atividade"))),
 			
               mainPanel(width = 9, # Complementar do width do sidebar
-                          div(sliderInput("data_jogo",
+                          div(sliderInput("data_tabela_variacoes",
                           "Escolha o mês e ano da Tabela de Variações:",
   						min = min(aux_datas$Data) + years(2), # Adiciona dois anos, pois não tem como fazer o monitor nos primeiros dois anos
   						max = max(aux_datas$Data),
@@ -232,7 +232,7 @@ tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelh
 						br(),
 						div(h3(textOutput("titulo_tabela")), align = "center"),
 						br(),
-						column(12, formattableOutput("tabela_brazuca")),
+						column(12, formattableOutput("tabela_variacoes_final")),
 						p("* Sem Ajuste Sazonal"),
 						p("** Com Ajuste Sazonal"),
 						p("NA - Não se aplica")))),
@@ -277,11 +277,7 @@ tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelh
 										 
 				 
 						mainPanel(width = 9,
-						conditionalPanel(condition = '!input.check_destaque_indicadores',
-						div(plotlyOutput("plot_monitor", height = "473px", width = "750px"), align = "center")), # 
-						
-						conditionalPanel(condition = 'input.check_destaque_indicadores',
-						div(plotlyOutput("plot_monitor_cores_no_scatter", height = "600px", width = "950px"), align = "center")),
+						div(plotlyOutput("plot_monitor", height = "473px", width = "750px"), align = "center"),
 						
 						br(),
 						br(),
@@ -294,7 +290,7 @@ tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelh
 						timeFormat="%m-%Y",
 						width = "90%",
 						step = 30.5, # Número de dias em cada variação do slider
-						animate = animationOptions(interval = 2500, loop = FALSE)), align = "center"),
+						animate = animationOptions(interval = 1500, loop = FALSE)), align = "center"),
 						span("Crescimento: representa a taxa de crescimento do indicador no acumulado de 12 meses.", style = "color:gray"),
 						br(),
 						span("Aceleração: representa a variação absoluta mensal do crescimento.", style = "color:gray")
