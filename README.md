@@ -9,4 +9,4 @@ The applications were all built in Shiny from RStudio and make use of the intera
 ## Consideration
 All the applications were developed by me, except for IdeseVis which was developed by Luís Henrique Zanadrea Paese (https://github.com/paeselhz) with my collaboration.
 
-In addition, MEG was developed with the collaboration of Luís Henrique Zanadrea Paese (https://github.com/paeselhz), Jéfferson Colombo and Fernando Cruz.
+In addition, MEG was developed with the collaboration of Luís Henrique Zanadrea Paese (https://github.com/paeselhz), Jéfferson Colombo and Fernando Cruz. The english version of MEG is inside `meg/bct-rs`.
