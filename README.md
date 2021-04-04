@@ -1,6 +1,6 @@
 # VisualizaFEE
 ## VisualizaFEE: Data Visualization Platform of Economics and Statistics Foundation
-This repository contains all the data, codes and supplemental materials of all the VisualizaFEE applications available at http://visualiza.fee.tche.br. This platform, written in Brazilian Portuguese, consists of several data visualization applications on various themes about Rio Grande do Sul (RS).
+This repository contains all the data, codes and supplemental materials of all the VisualizaFEE applications available at http://visualiza.dee.planejamento.rs.gov.br/. This platform, written in Brazilian Portuguese, consists of several data visualization applications on various themes about Rio Grande do Sul (RS).
 
 There are applications of crime related making use of criminal occurrences of the Secretariat of Public Security, data of demography of the Economics and Statistics Foundation and the Brazilian Institute of Geography and Statistics, data of the index of socioeconomic development (idese) that represents a synthesis indicator of health, income and education, quarterly data of the Gross Domestic Product of RS and, finally, an application of the main macroeconomic data of Rio Grande do Sul regarding its Business Cycle.
 
