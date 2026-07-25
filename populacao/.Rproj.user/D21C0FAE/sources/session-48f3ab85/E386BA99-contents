@@ -1,11 +1,18 @@
 # Packages
-library(rgdal)
+# O pacote rgdal foi definitivamente retirado do CRAN (out/2023) e não é mais necessário aqui:
+# os objetos mapa_rs, mapa_cr e mapa_rf já são objetos "Spatial*" (sp) pré-processados e salvos em .rds,
+# e o sp moderno (>= 1.6) não depende mais do rgdal/rgeos para as operações usadas neste app
+# (bbox(), merge(), addPolygons(), acesso a @polygons/@data etc.).
+# É preciso, no entanto, carregar o pacote sp explicitamente: antes, ele era anexado
+# "de carona" pelo rgdal (que o tinha como dependência); sem essa linha, funções como
+# bbox() e merge() para objetos espaciais deixam de ser encontradas.
+library(sp)
 library(plotly)
 library(stringi)
 library(tidyverse)
 library(dplyr)
 library(tidyr)
-library(d3plus)
+library(D3plusR) # Corrigido: o pacote correto é "D3plusR" (github: paulofelipe/D3plusR), não "d3plus"
 library(DT)
 
 df_ppp <- readRDS("popvisBase_2016.rds")
@@ -424,15 +431,15 @@ shinyServer(function(input, session, output) {
     
     #classe <- reactive({
     #validate(
-    #  need(try(input$classe_mapa != ""), "Please select a data set")
+    #  need(try(input$classe_mapa_t1 != ""), "Please select a data set")
     #)
-    #input$classe_mapa
+    #input$classe_mapa_t1
     #})
     
-    #classe <- stri_conv(as.character(input$classe_mapa), "UTF-8", "latin1")
-    classe <- input$classe_mapa
-    ano <- input$ano_mapa
-    sens <- input$sens_mapa
+    #classe <- stri_conv(as.character(input$classe_mapa_t1), "UTF-8", "latin1")
+    classe <- input$classe_mapa_t1
+    ano <- input$ano_mapa_t1
+    sens <- input$sens_mapa_t1
     
     df_aux_mapa_pre <- filter(df_pre, Ano == ano, Classe %in% classe)
     
@@ -455,7 +462,7 @@ shinyServer(function(input, session, output) {
     am <- data.frame(am, row.names=NULL)
     names(am) <- c("Long", "Lat")
     
-    if (input$genero_mapa == "total_mapa_radio") {
+    if (input$genero_mapa_t1 == "total_mapa_radio") {
       
       leaflet(data = df_mapa) %>% addTiles() %>%
         addCircles(lng = ~am$Long, lat = ~am$Lat, weight = 1, color = "Green",
@@ -465,7 +472,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa == "homens_mapa_radio") {
+      if (input$genero_mapa_t1 == "homens_mapa_radio") {
         
         leaflet(data = df_mapa) %>% addTiles() %>%
           addCircles(lng = ~am$Long, lat = ~am$Lat, weight = 1, color = "navy",
@@ -493,14 +500,14 @@ shinyServer(function(input, session, output) {
     
     #classe <- reactive({
     #validate(
-    #  need(try(input$classe_mapa != ""), "Please select a data set")
+    #  need(try(input$classe_mapa_t2 != ""), "Please select a data set")
     #)
-    #input$classe_mapa
+    #input$classe_mapa_t2
     #})
     
-    #classe <- stri_conv(as.character(input$classe_mapa), "UTF-8", "latin1")
-    classe <- input$classe_mapa
-    ano <- input$ano_mapa
+    #classe <- stri_conv(as.character(input$classe_mapa_t2), "UTF-8", "latin1")
+    classe <- input$classe_mapa_t2
+    ano <- input$ano_mapa_t2
     
     df_aux_mapa_pre <-  df_pre %>% 
       select(Mun, CodIBGE, Ano, Homens, Mulheres, Total, Classe) %>% # Pra dar uma enxugada na tabela
@@ -535,7 +542,7 @@ shinyServer(function(input, session, output) {
     
     df_mapa <- merge(mapa_rs, tb_mapa_final, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
     
-    if (input$genero_mapa == "total_mapa_radio") {
+    if (input$genero_mapa_t2 == "total_mapa_radio") {
       
       #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$T_Perc)
 	  gradiente = colorNumeric(c("lightgrey", "yellow", "green3", "darkgreen"), domain = df_mapa$T_Perc)
@@ -554,7 +561,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa == "homens_mapa_radio") {
+      if (input$genero_mapa_t2 == "homens_mapa_radio") {
         
         #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$H_Perc)
         gradiente = colorNumeric(c("lightgrey", "yellow", "green3", "darkgreen"), domain = df_mapa$H_Perc)
@@ -597,13 +604,13 @@ shinyServer(function(input, session, output) {
     
     #classe <- reactive({
     #validate(
-    #  need(try(input$classe_mapa != ""), "Please select a data set")
+    #  need(try(input$classe_mapa_t3 != ""), "Please select a data set")
     #)
-    #input$classe_mapa
+    #input$classe_mapa_t3
     #})
     
-    classe <- stri_conv(as.character(input$classe_mapa), "UTF-8", "latin1")
-    #classe <- input$classe_mapa
+    classe <- stri_conv(as.character(input$classe_mapa_t3), "UTF-8", "latin1")
+    #classe <- input$classe_mapa_t3
     #classe <- c("00 a 04", "25 a 29")
     ano_inicial <- min(df_pre$Ano)
     ano_final   <- max(df_pre$Ano)
@@ -637,7 +644,7 @@ shinyServer(function(input, session, output) {
     
     df_mapa <- merge(mapa_rs, tb_mapa_final, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
     
-    if (input$genero_mapa == "total_mapa_radio") {
+    if (input$genero_mapa_t3 == "total_mapa_radio") {
       
       #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$Var_T)
 	  #gradiente = colorNumeric(c("Red", "yellow", "green3", "darkgreen"), domain = df_mapa$Var_T)
@@ -662,7 +669,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa == "homens_mapa_radio") {
+      if (input$genero_mapa_t3 == "homens_mapa_radio") {
         
         #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$Var_H)
 		#gradiente = colorNumeric(c("Red", "yellow", "green3", "darkgreen"), domain = df_mapa$Var_H)
@@ -731,10 +738,10 @@ shinyServer(function(input, session, output) {
     #input$classe_mapa
     #})
     
-    classe <- stri_conv(as.character(input$classe_mapa_cr), "UTF-8", "latin1")
-    #classe <- input$classe_mapa_cr
-    ano <- input$ano_mapa_cr
-    sens <- input$sens_mapa_cr
+    classe <- stri_conv(as.character(input$classe_mapa_cr_t1), "UTF-8", "latin1")
+    #classe <- input$classe_mapa_cr_t1
+    ano <- input$ano_mapa_cr_t1
+    sens <- input$sens_mapa_cr_t1
     
     df_aux_mapa_pre <- filter(df_pre, Ano == ano, Classe %in% classe)
     
@@ -757,7 +764,7 @@ shinyServer(function(input, session, output) {
     am <- data.frame(am, row.names=NULL)
     names(am) <- c("Long", "Lat")
     
-    if (input$genero_mapa_cr == "total_mapa_radio") {
+    if (input$genero_mapa_cr_t1 == "total_mapa_radio") {
       
       leaflet(data = df_mapa) %>% addTiles() %>%
         addCircles(lng = ~am$Long, lat = ~am$Lat, weight = 1, color = "Green",
@@ -767,7 +774,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa_cr == "homens_mapa_radio") {
+      if (input$genero_mapa_cr_t1 == "homens_mapa_radio") {
         
         leaflet(data = df_mapa) %>% addTiles() %>%
           addCircles(lng = ~am$Long, lat = ~am$Lat, weight = 1, color = "navy",
@@ -799,9 +806,9 @@ shinyServer(function(input, session, output) {
     #input$classe_mapa
     #})
     
-    #classe <- stri_conv(as.character(input$classe_mapa_cr), "UTF-8", "latin1")
-    classe <- input$classe_mapa_cr
-    ano <- input$ano_mapa_cr
+    #classe <- stri_conv(as.character(input$classe_mapa_cr_t2), "UTF-8", "latin1")
+    classe <- input$classe_mapa_cr_t2
+    ano <- input$ano_mapa_cr_t2
     
     df_aux_mapa_pre <-  df_pre %>% 
       select(Corede, CodCorede, Ano, Homens, Mulheres, Total, Classe) %>% # Pra dar uma enxugada na tabela
@@ -835,7 +842,7 @@ shinyServer(function(input, session, output) {
 
     df_mapa <- merge(mapa_cr, tb_mapa_final, by.x = "OBJECTID", by.y="CodCorede", all.x = FALSE)
     
-    if (input$genero_mapa_cr == "total_mapa_radio") {
+    if (input$genero_mapa_cr_t2 == "total_mapa_radio") {
       
       #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$T_Perc)
 	  gradiente = colorNumeric(c("lightgrey", "yellow", "green3", "darkgreen"), domain = df_mapa$T_Perc)
@@ -854,7 +861,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa_cr == "homens_mapa_radio") {
+      if (input$genero_mapa_cr_t2 == "homens_mapa_radio") {
         
         #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$H_Perc)
 		gradiente = colorNumeric(c("lightgrey", "yellow", "green3", "darkgreen"), domain = df_mapa$H_Perc)
@@ -902,8 +909,8 @@ shinyServer(function(input, session, output) {
     #input$classe_mapa
     #})
     
-    classe <- stri_conv(as.character(input$classe_mapa_cr), "UTF-8", "latin1")
-    #classe <- input$classe_mapa_cr
+    classe <- stri_conv(as.character(input$classe_mapa_cr_t3), "UTF-8", "latin1")
+    #classe <- input$classe_mapa_cr_t3
     #classe <- c("00 a 04", "25 a 29")
     ano_inicial <- min(df_pre$Ano)
     ano_final   <- max(df_pre$Ano)
@@ -937,7 +944,7 @@ shinyServer(function(input, session, output) {
     
     df_mapa <- merge(mapa_cr, tb_mapa_final, by.x = "OBJECTID", by.y="CodCorede", all.x = FALSE)
     
-    if (input$genero_mapa_cr == "total_mapa_radio") {
+    if (input$genero_mapa_cr_t3 == "total_mapa_radio") {
       
       #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$Var_T)
 	  #gradiente = colorNumeric(c("Red", "yellow", "green3", "darkgreen"), domain = df_mapa$Var_T)
@@ -960,7 +967,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa_cr == "homens_mapa_radio") {
+      if (input$genero_mapa_cr_t3 == "homens_mapa_radio") {
         
         #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$Var_H)
 		#gradiente = colorNumeric(c("Red", "yellow", "green3", "darkgreen"), domain = df_mapa$Var_H)
@@ -1025,9 +1032,9 @@ shinyServer(function(input, session, output) {
     #})
     
     #classe <- stri_conv(as.character(input$classe_mapa), "UTF-8", "latin1")
-    classe <- input$classe_mapa_rf
-    ano <- input$ano_mapa_rf
-    sens <- input$sens_mapa_rf
+    classe <- input$classe_mapa_rf_t1
+    ano <- input$ano_mapa_rf_t1
+    sens <- input$sens_mapa_rf_t1
     
     df_aux_mapa_pre <- filter(df_pre, Ano == ano, Classe %in% classe)
     
@@ -1050,7 +1057,7 @@ shinyServer(function(input, session, output) {
     am <- data.frame(am, row.names=NULL)
     names(am) <- c("Long", "Lat")
     
-    if (input$genero_mapa_rf == "total_mapa_radio") {
+    if (input$genero_mapa_rf_t1 == "total_mapa_radio") {
       
       leaflet(data = df_mapa) %>% addTiles() %>%
         addCircles(lng = ~am$Long, lat = ~am$Lat, weight = 1, color = "Green",
@@ -1060,7 +1067,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa_rf == "homens_mapa_radio") {
+      if (input$genero_mapa_rf_t1 == "homens_mapa_radio") {
         
         leaflet(data = df_mapa) %>% addTiles() %>%
           addCircles(lng = ~am$Long, lat = ~am$Lat, weight = 1, color = "navy",
@@ -1094,8 +1101,8 @@ shinyServer(function(input, session, output) {
     #})
     
     #classe <- stri_conv(as.character(input$classe_mapa), "UTF-8", "latin1")
-    classe <- input$classe_mapa_rf
-    ano <- input$ano_mapa_rf
+    classe <- input$classe_mapa_rf_t2
+    ano <- input$ano_mapa_rf_t2
     
     df_aux_mapa_pre <-  df_pre %>% 
       select(CodRF, Ano, Homens, Mulheres, Total, Classe) %>% # Pra dar uma enxugada na tabela
@@ -1129,7 +1136,7 @@ shinyServer(function(input, session, output) {
     
     df_mapa <- merge(mapa_rf, tb_mapa_final, by.x = "OBJECTID", by.y="CodRF", all.x = FALSE)
     
-    if (input$genero_mapa_rf == "total_mapa_radio") {
+    if (input$genero_mapa_rf_t2 == "total_mapa_radio") {
       
       #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$T_Perc)
 	  gradiente = colorNumeric(c("lightgrey", "yellow", "green3", "darkgreen"), domain = df_mapa$T_Perc)
@@ -1149,7 +1156,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa_rf == "homens_mapa_radio") {
+      if (input$genero_mapa_rf_t2 == "homens_mapa_radio") {
         
         #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$H_Perc)
 		gradiente = colorNumeric(c("lightgrey", "yellow", "green3", "darkgreen"), domain = df_mapa$H_Perc)
@@ -1198,7 +1205,7 @@ shinyServer(function(input, session, output) {
     #input$classe_mapa
     #})
     
-    classe <- stri_conv(as.character(input$classe_mapa_rf), "UTF-8", "latin1")
+    classe <- stri_conv(as.character(input$classe_mapa_rf_t3), "UTF-8", "latin1")
     #classe <- input$classe_mapa_cr
     #classe <- c("00 a 04", "25 a 29")
     ano_inicial <- min(df_pre$Ano)
@@ -1233,7 +1240,7 @@ shinyServer(function(input, session, output) {
     
     df_mapa <- merge(mapa_rf, tb_mapa_final, by.x = "OBJECTID", by.y="CodRF", all.x = FALSE)
     
-    if (input$genero_mapa_rf == "total_mapa_radio") {
+    if (input$genero_mapa_rf_t3 == "total_mapa_radio") {
       
       #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$Var_T)
 	  #gradiente = colorNumeric(c("Red", "yellow", "green3", "darkgreen"), domain = df_mapa$Var_T)
@@ -1256,7 +1263,7 @@ shinyServer(function(input, session, output) {
     
     else {
       
-      if (input$genero_mapa_rf == "homens_mapa_radio") {
+      if (input$genero_mapa_rf_t3 == "homens_mapa_radio") {
         
         #gradiente = colorNumeric(c("lightgrey", "yellow", "orange", "Red"), domain = df_mapa$Var_H)
 		#gradiente = colorNumeric(c("Red", "yellow", "green3", "darkgreen"), domain = df_mapa$Var_H)
