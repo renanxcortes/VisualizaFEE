@@ -3,7 +3,7 @@
     "path": "~/GitHub/VisualizaFEE/populacao/ui.R",
     "project_path": "ui.R",
     "type": "r_source",
-    "hash": "2814848800",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1785013927214.0,
@@ -12,7 +12,7 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "0,0",
+        "cursorPosition": "10,0",
         "scrollLine": "0"
     },
     "folds": "",
