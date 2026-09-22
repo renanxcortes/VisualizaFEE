@@ -3,24 +3,8 @@
 ##################
 
 shinyUI(fluidPage(
-        includeCSS("estilocrime.css"), 
-        htmlOutput("frame"), 
-        theme = shinytheme("cerulean"), 
-        tags$head(tags$script(src="tracking.js")), 
-        tags$head(tags$link(rel="shortcut icon", href="feeicon.ico")),
-        tags$div(
-                  HTML("<script>
-                  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-                  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-                  
-                  ga('create', 'UA-1506603-5', 'auto');
-                  ga('send', 'pageview');
-                  
-                  </script>
-                  ")
-        ),
+        includeCSS("estilocrime.css"),
+        theme = shinytheme("cerulean"),
         tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelha de erro!!
           ".shiny-output-error { visibility: hidden; }",
           ".shiny-output-error:before { visibility: hidden; }"
@@ -40,16 +24,11 @@ shinyUI(fluidPage(
                       
                       sidebarLayout(
                         sidebarPanel(
-                          h2("Fundação de Economia e Estatística"),
-                          p("A Fundação de Economia e Estatística Siegfried Emanuel Heuser (FEE) é uma instituição de pesquisa, vinculada à Secretaria do Planejamento, Mobilidade e Desenvolvimento Regional do Governo do Estado do Rio Grande do Sul."),
+                          h2("Sobre o CrimeVis"),
+                          p("O CrimeVis é um aplicativo de visualização de dados de criminalidade do Rio Grande do Sul, desenvolvido por Renan Xavier Cortes."),
                           br(),
                           br(),
-                          img(src = "fee_logo.png", height = 32, width = 132), 
-                          img(src = "logoGoverno.png", height = 62, width = 92),
-                          br(),
-                          br(),
-                          br(),
-                          "Shiny é um produto do ", 
+                          "Shiny é um produto do ",
                           span("RStudio", style = "color:blue"),".", 
                           br(), 
                           br(),
@@ -57,12 +36,12 @@ shinyUI(fluidPage(
                         ),
                         mainPanel(
                           h1("Visualização da criminalidade anual no Rio Grande do Sul"),
-                          p("O aplicativo CrimeVis é um produto da Fundação de Economia e Estatística que apresenta, 
-                            de maneira interativa e dinâmica, os crimes dos municípios do Rio Grande do Sul (RS) 
-                            com dados anuais disponibilizados pela Secretaria de Segurança Pública do RS (SSP-RS). Seus 
-                            dados brutos podem ser acessados tanto no ",em("site")," da SSP-RS neste", 
-                            a("link", href = "http://www.ssp.rs.gov.br/"), "na parte de indicadores 
-                            criminais, quanto no FEEDADOS neste", a("link", href = "http://feedados.fee.tche.br/feedados/",".")),
+                          p("O aplicativo CrimeVis apresenta,
+                            de maneira interativa e dinâmica, os crimes dos municípios do Rio Grande do Sul (RS)
+                            com dados anuais disponibilizados pela Secretaria de Segurança Pública do RS (SSP-RS). Seus
+                            dados brutos podem ser acessados no ",em("site")," da SSP-RS neste",
+                            a("link", href = "http://www.ssp.rs.gov.br/"), "na parte de indicadores
+                            criminais."),
                           br(),
                           p("O CrimeVis foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
                             a("Shiny homepage.", 
@@ -79,8 +58,8 @@ shinyUI(fluidPage(
                           br(),
                           h3("Contato para dúvidas, sugestões ou solicitações de código:"),
 						              p("Renan Xavier Cortes ",
-                            a("(CONTATO)", 
-                              href = "http://www.fee.rs.gov.br/contato/", target="_blank")),
+                            a("(GitHub)",
+                              href = "https://github.com/renanxcortes", target="_blank")),
 						  
 						  br(),
 						  br(),

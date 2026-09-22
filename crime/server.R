@@ -3,23 +3,8 @@
 ##########
 
 shinyServer(function(input, output) {
-  
 
-  output$frame <- renderUI({
-    my_test <- tags$iframe(src="http://www.fee.tche.br/barra/index.html", 
-	height="31px", 
-	width = "100%", 
-	borderbottom = "1px",
-	solid = "#6CB3D4",     
-	bordertop = "0px",
-	borderleft = "0px",
-	borderright = "0px",
-    margin = "0px",
-    padding= "0px")
-    print(my_test)
-  })
-  
-  
+
   output$ts_compara_crime_cidades <- renderPlotly({
     
     if(length(input$crimes_compara_crimes)==0) return(NULL) # Para não aparecer uma mensagem de erro
