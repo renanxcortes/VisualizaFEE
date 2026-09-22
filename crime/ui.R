@@ -4,7 +4,7 @@
 
 shinyUI(fluidPage(
         includeCSS("estilocrime.css"),
-        theme = shinytheme("cerulean"),
+        theme = shinytheme("united"),
         tags$style(type="text/css", # isso é para não mostrar nenhuma mensagem vermelha de erro!!
           ".shiny-output-error { visibility: hidden; }",
           ".shiny-output-error:before { visibility: hidden; }"
