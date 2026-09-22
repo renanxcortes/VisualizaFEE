@@ -5,6 +5,6 @@ account: renanxcortes
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 17983264
-bundleId: 12591927
+bundleId: 12591948
 url: https://renanxcortes.shinyapps.io/visualizacrimers/
 version: 1
