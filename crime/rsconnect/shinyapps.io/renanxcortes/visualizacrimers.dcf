@@ -1,10 +1,10 @@
-name: crimevis
+name: visualizacrimers
 title:
 username: renanxcortes
 account: renanxcortes
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 17981916
-bundleId: 12591294
-url: https://renanxcortes.shinyapps.io/crimevis/
+appId: 17983264
+bundleId: 12591679
+url: https://renanxcortes.shinyapps.io/visualizacrimers/
 version: 1

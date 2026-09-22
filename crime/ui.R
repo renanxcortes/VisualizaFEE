@@ -19,13 +19,13 @@ shinyUI(fluidPage(
         
         ),  
   
-  navbarPage("CrimeVis", # Navegação
+  navbarPage("VisualizaCrimeRS", # Navegação
              tabPanel("Apresentação", 
                       
                       sidebarLayout(
                         sidebarPanel(
-                          h2("Sobre o CrimeVis"),
-                          p("O CrimeVis é um aplicativo de visualização de dados de criminalidade do Rio Grande do Sul, desenvolvido por Renan Xavier Cortes."),
+                          h2("Sobre o VisualizaCrimeRS"),
+                          p("O VisualizaCrimeRS é um aplicativo de visualização de dados de criminalidade do Rio Grande do Sul, desenvolvido por Renan Xavier Cortes."),
                           br(),
                           br(),
                           "Shiny é um produto do ",
@@ -36,18 +36,18 @@ shinyUI(fluidPage(
                         ),
                         mainPanel(
                           h1("Visualização da criminalidade anual no Rio Grande do Sul"),
-                          p("O aplicativo CrimeVis apresenta,
+                          p("O aplicativo VisualizaCrimeRS apresenta,
                             de maneira interativa e dinâmica, os crimes dos municípios do Rio Grande do Sul (RS)
                             com dados anuais disponibilizados pela Secretaria de Segurança Pública do RS (SSP-RS). Seus
                             dados brutos podem ser acessados no ",em("site")," da SSP-RS neste",
                             a("link", href = "http://www.ssp.rs.gov.br/"), "na parte de indicadores
                             criminais."),
                           br(),
-                          p("O CrimeVis foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
+                          p("O VisualizaCrimeRS foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
                             a("Shiny homepage.", 
                               href = "http://www.rstudio.com/shiny")),
 						              br(),
-                          #p(em("Nota: Como os dados de criminalidade de 2016 já estão disponíveis, os dados populacionais de 2016 são as estimativas de 2015 neste aplicativo para o cálculo das taxas. Assim que as estimativas populacionais de 2016 forem calculadas, elas serão atualizadas no CrimeVis.")),						  
+                          #p(em("Nota: Como os dados de criminalidade de 2016 já estão disponíveis, os dados populacionais de 2016 são as estimativas de 2015 neste aplicativo para o cálculo das taxas. Assim que as estimativas populacionais de 2016 forem calculadas, elas serão atualizadas no VisualizaCrimeRS.")),						  
                           br(),
                           h2("Características do aplicativo"),
                           p("* Visualize séries temporais dos municípios e do Estado por número de ocorrências e taxas."),
