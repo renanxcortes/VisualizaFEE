@@ -153,7 +153,13 @@ shinyServer(function(input, output) {
     
     crime_x <- input$crimex
     crime_y <- input$crimey
-    
+
+    crimes_com_dados <- base_crime %>% filter(Ano == ano, Crime %in% c(crime_x, crime_y)) %>% pull(Crime) %>% unique()
+    shiny::validate(shiny::need(
+      crime_x %in% crimes_com_dados && crime_y %in% crimes_com_dados,
+      "Um dos crimes selecionados não possui dados para o ano escolhido."
+    ))
+
     n_grupos <- input$n_grupos_kmeans
     
     if(input$tipo_dado_disp == "ocorre_radio_disp") {
@@ -252,10 +258,12 @@ shinyServer(function(input, output) {
     ano_mapa   <- input$ano_mapa
     crime_mapa <- input$crime_mapa
     
-    df_aux <- base_crime %>% 
+    df_aux <- base_crime %>%
               filter(Ano == ano_mapa & Crime == crime_mapa) %>%
               mutate(Taxa = Qtd / Populacao * 100000)
-    
+
+    shiny::validate(shiny::need(nrow(df_aux) > 0, "Sem dados disponíveis para este crime neste ano."))
+
     df_mapa <- merge(mapa_rs, df_aux, by.x = "GEOCODIG_M", by.y = "CodIBGE", all.x = FALSE)
     
     # Este naco e para o mapa de bolhas (latitudes e longitudes)
@@ -327,24 +335,25 @@ shinyServer(function(input, output) {
   output$gauge_moran = renderGauge({
     
     df_aux_pre <- filter(base_crime, Ano == input$ano_mapa & Crime == input$crime_mapa)
+    shiny::validate(shiny::need(nrow(df_aux_pre) > 0, "Sem dados disponíveis para este crime neste ano."))
     df_aux <- mutate(df_aux_pre, Taxa = Qtd / Populacao * 100000)
     df_mapa <- merge(mapa_rs, df_aux, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
-    
+
     if (input$tipo_estrutura_espacial == "Municípios que fazem fronteira") {
-      
+
       nbrsm_pre <- poly2nb(df_mapa, queen = TRUE)
       nbrsm <- nb2listw(nbrsm_pre)
-      
+
     }
-    
+
     else {
-      
+
       nbrsm_pre <- knearneigh(coordinates(df_mapa), k=input$n_vizinhos_moran)
       nbrsm_aux <- knn2nb(nbrsm_pre)
       nbrsm <- nb2listw(nbrsm_aux)
-      
+
     }
-    
+
     n <- nrow(df_mapa)
     
     if (input$tipo_dado_mapa == "ocorre_radio_mapa")
@@ -365,9 +374,10 @@ shinyServer(function(input, output) {
   output$mapinha_grafo = renderPlot({
       
       df_aux_pre <- filter(base_crime, Ano == input$ano_mapa & Crime == input$crime_mapa)
+      shiny::validate(shiny::need(nrow(df_aux_pre) > 0, "Sem dados disponíveis para este crime neste ano."))
       df_aux <- mutate(df_aux_pre, Taxa = Qtd / Populacao * 100000)
       df_mapa <- merge(mapa_rs, df_aux, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
-      
+
       if (input$tipo_estrutura_espacial == "Municípios que fazem fronteira") {
         
         nbrsm_pre <- poly2nb(df_mapa, queen = TRUE)
@@ -465,7 +475,13 @@ shinyServer(function(input, output) {
     ano_inicial <-anos[1]
     ano_final  <- anos[2]
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      ano_inicial %in% anos_com_dados && ano_final %in% anos_com_dados,
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
     df_aux_pre_final   <- filter(base_crime, Ano == ano_final & Crime == crime)
     df_aux_pre <- filter(base_crime, Ano %in% anos & Crime == crime) %>% 
@@ -518,7 +534,13 @@ shinyServer(function(input, output) {
     
     anos <- input$anos_markov
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      all(anos %in% anos_com_dados),
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
       mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
       select(-Qtd, -Populacao) %>%
@@ -546,7 +568,13 @@ shinyServer(function(input, output) {
     
     anos <- input$anos_markov
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      all(anos %in% anos_com_dados),
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
       mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
       select(-Qtd, -Populacao) %>%
@@ -568,7 +596,13 @@ shinyServer(function(input, output) {
     
     anos <- input$anos_markov
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      all(anos %in% anos_com_dados),
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
       mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
       select(-Qtd, -Populacao) %>%
@@ -604,7 +638,13 @@ shinyServer(function(input, output) {
     
     anos <- input$anos_markov
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      all(anos %in% anos_com_dados),
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_markov <- filter(base_crime, Ano %in% anos & Crime == crime) %>%
       mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
       select(-Qtd, -Populacao) %>%
@@ -648,7 +688,13 @@ shinyServer(function(input, output) {
     ano_inicial <-anos[1]
     ano_final  <- anos[2]
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      ano_inicial %in% anos_com_dados && ano_final %in% anos_com_dados,
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
     
     df_mapa_inicial <- merge(mapa_rs, df_aux_pre_inicial, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
@@ -721,7 +767,13 @@ shinyServer(function(input, output) {
     ano_inicial <-anos[1]
     ano_final  <- anos[2]
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      ano_inicial %in% anos_com_dados && ano_final %in% anos_com_dados,
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
     
     df_mapa_inicial <- merge(mapa_rs, df_aux_pre_inicial, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
@@ -820,7 +872,13 @@ shinyServer(function(input, output) {
     ano_inicial <-anos[1]
     ano_final  <- anos[2]
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      ano_inicial %in% anos_com_dados && ano_final %in% anos_com_dados,
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_inicial <- filter(base_crime, Ano == ano_inicial & Crime == crime)
     
     df_mapa_inicial <- merge(mapa_rs, df_aux_pre_inicial, by.x = "GEOCODIG_M", by.y="CodIBGE", all.x = FALSE)
@@ -891,8 +949,14 @@ shinyServer(function(input, output) {
   
   
   output$evolucao_odds_temporal <- renderPlotly({
-  
+
   crime_escolhido_crimevis <- input$crime_markov
+
+  anos_com_dados <- base_crime %>% filter(Crime == crime_escolhido_crimevis) %>% pull(Ano) %>% unique()
+  shiny::validate(shiny::need(
+    all(unique(base_crime$Ano) %in% anos_com_dados),
+    "Este crime não possui dados para todo o período, então a evolução anual de odds não pode ser calculada."
+  ))
 
    pares_de_anos <- list()
    for(i in 1:(length(unique(base_crime$Ano))-1)) {pares_de_anos[[i]] <- c(min(base_crime$Ano)+i-1, min(base_crime$Ano)+i)}
@@ -944,9 +1008,15 @@ shinyServer(function(input, output) {
   
   
   output$evolucao_odds_espaco_temporal <- renderPlotly({
-  
+
   crime_escolhido_crimevis <- input$crime_markov
-  
+
+  anos_com_dados <- base_crime %>% filter(Crime == crime_escolhido_crimevis) %>% pull(Ano) %>% unique()
+  shiny::validate(shiny::need(
+    all(unique(base_crime$Ano) %in% anos_com_dados),
+    "Este crime não possui dados para todo o período, então a evolução anual de odds não pode ser calculada."
+  ))
+
   pares_de_anos <- list()
   for(i in 1:(length(unique(base_crime$Ano))-1)) {pares_de_anos[[i]] <- c(min(base_crime$Ano)+i-1, min(base_crime$Ano)+i)}
   
@@ -1078,9 +1148,15 @@ plot_ly(aux2_espaco_temp, x = ~Ano, y = ~Odds,
     
     anos_janela_1 <- input$anos_markov_janela_1
     anos_janela_2 <- input$anos_markov_janela_2
-    
+
     crime <- input$crime_markov
-    
+
+    anos_com_dados <- base_crime %>% filter(Crime == crime) %>% pull(Ano) %>% unique()
+    shiny::validate(shiny::need(
+      all(c(anos_janela_1, anos_janela_2) %in% anos_com_dados),
+      "Um dos anos escolhidos não possui dados para este crime."
+    ))
+
     df_aux_pre_markov_j1 <- filter(base_crime, Ano %in% anos_janela_1 & Crime == crime) %>%
       mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
       select(-Qtd, -Populacao) %>%

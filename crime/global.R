@@ -18,11 +18,7 @@ library(shinythemes)
 ###########
 ###########
 
-base_crime <- readRDS("base_crimevis_2016_pop_ok.rds") # Tibble
-
-# Conversão de strings para Shiny server
-base_crime$Mun <- stri_conv(as.character(base_crime$Mun), "latin1", "UTF-8")
-base_crime$Crime <- stri_conv(as.character(base_crime$Crime), "latin1", "UTF-8")
+base_crime <- readRDS("base_crimevis_2024.rds") # Tibble; gerada por atualiza_base_crime.R
 
 mapa_rs <- readRDS("MapaRS.rds")
 
