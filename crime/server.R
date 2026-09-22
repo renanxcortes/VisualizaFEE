@@ -17,19 +17,13 @@ shinyServer(function(input, output) {
     margin = "0px",
     padding= "0px")
     print(my_test)
-    #my_test
   })
   
   
   output$ts_compara_crime_cidades <- renderPlotly({
     
     if(length(input$crimes_compara_crimes)==0) return(NULL) # Para não aparecer uma mensagem de erro
-    
-    
-	# Conversão de strings para Shiny server
-	#crimes <- stri_conv(as.character(input$crimes_compara_crimes), "UTF-8", "latin1")
-  #cidade <- stri_conv(as.character(input$cidade_compara_crime), "UTF-8", "latin1")
-  
+
   crimes <- input$crimes_compara_crimes
   cidade <- input$cidade_compara_crime
 
@@ -63,10 +57,7 @@ shinyServer(function(input, output) {
   output$ts_compara_crime_rs <- renderPlotly({
     
     if(length(input$crimes_compara_crimes)==0) return(NULL)
-    
-    # Conversão de strings para Shiny server
-    #crimes <- stri_conv(as.character(input$crimes_compara_crimes), "UTF-8", "latin1")
-    
+
     crimes <- input$crimes_compara_crimes
     
     df_aux_ts <- filter(base_crime, Crime %in% crimes) # Note que aqui não tem o filtro de Município
@@ -134,11 +125,7 @@ shinyServer(function(input, output) {
     tb4 <- tb1 %>%
            union(tb2) %>%
            union(tb3) # Cria uma base que o estado e a RMPA é como se fosse um município
-    
-    # Conversão de string para Shiny server
-	  # cidades <- stri_conv(as.character(input$cidades_compara), "UTF-8", "latin1")
-    # crime <- stri_conv(as.character(input$crime_compara), "UTF-8", "latin1")
-    
+
     cidades <- input$cidades_compara
     crime <- input$crime_compara
     
@@ -415,21 +402,6 @@ shinyServer(function(input, output) {
     })
     
   
-  output$tree_map_antigo <- renderD3plus({
-    df_aux <- filter(base_crime, Ano == input$ano_tree & Crime == input$crime_tree)
-    if (input$tipo_dado_tree == "ocorre_radio_tree") {
-      df <- df_aux[,c(1,5)]
-    }
-    else {
-      if (input$tipo_dado_tree == "pop_radio_tree") df <- df_aux[,c(1,6)] 
-      else
-      df <- mutate(df_aux, Taxa = Qtd/Populacao * 100000)[,c(1,7)]
-      }
-      
-    d3plus("tree",df)
-  })
-  
-  
   output$tree_map <- renderD3plus({
     
     ano_tree <- input$ano_tree
@@ -522,7 +494,6 @@ shinyServer(function(input, output) {
     # 2 - Passou a ter crime
     # 3 - Permaneceu com crime
     # 4 - Passou a não ter crime
-    #cores_T <- c("lightgreen", "red", "black", "blue")
     cores_T <- c("#b8da6b", "#ff6d00", "#ca0000", "#ffd42a")
     # Cores http://www.ginifab.com/feeds/pms/pms_color_in_image.php
 	
@@ -544,10 +515,9 @@ shinyServer(function(input, output) {
     par(mfrow = c(1,3), mar=c(1,1,2,1), oma=c(0,0,0,0), cex.main = 1.75)
     plot(df_mapa_inicial, lwd = 1.175, col = cores_inicial, border="grey", main = paste0(crime, " em ", ano_inicial))
     plot(df_mapa_final, lwd = 1.175, col = cores_final, border="grey", main = paste0(crime, " em ", ano_final))
-    plot(df_mapa_transicao, lwd = 1.175, 
-         col = cores_transicao, 
-         #border="grey", 
-         border="beige", 
+    plot(df_mapa_transicao, lwd = 1.175,
+         col = cores_transicao,
+         border="beige",
          main = "Transição de Estados")
     legend('bottomleft', c("Permaneceu sem crime", "Passou a ter crime", "Permaneceu com crime", "Passou a não ter crime"), 
            fill = cores_T, 
@@ -895,13 +865,7 @@ shinyServer(function(input, output) {
     
     # Tabela Bruta
     tab_bruta_NB <- table(as.factor(df_aux_pre_markov_NB$Inicial), as.factor(df_aux_pre_markov_NB$Final))
-    #prop_NB <- prop.table(tab_bruta_NB, 1) # Probabilidades de transição (proporção marginal das linhas)
-    #tab_final_NB <- cbind(rowSums(tab_bruta_NB),prop_NB)
-    
-    
-    
-    
-    
+
     # Matriz de transição B
     df_aux_pre_markov_B <- filter(base_crime_estratos, Ano %in% anos & Crime == crime & Estrato == "B") %>%
       mutate(Dummy_Ocorrencia = ifelse(Qtd > 0, 1, 0)) %>%
@@ -913,9 +877,7 @@ shinyServer(function(input, output) {
     
     # Tabela Bruta
     tab_bruta_B <- table(as.factor(df_aux_pre_markov_B$Inicial), as.factor(df_aux_pre_markov_B$Final))
-    #prop_B <- prop.table(tab_bruta_B, 1) # Probabilidades de transição (proporção marginal das linhas)
-    #tab_final_B <- cbind(rowSums(tab_bruta_B),prop_B)
-    
+
     # Tabela Final NB + B (pg. 520 paper Reis)
     f_sij <- rbind(tab_bruta_NB, tab_bruta_B)
     f_si  <- rowSums(f_sij)
@@ -946,8 +908,7 @@ shinyServer(function(input, output) {
   output$evolucao_odds_temporal <- renderPlotly({
   
   crime_escolhido_crimevis <- input$crime_markov
-  #anos_escolhidos_crimevis <- input$anos_markov
-  
+
    pares_de_anos <- list()
    for(i in 1:(length(unique(base_crime$Ano))-1)) {pares_de_anos[[i]] <- c(min(base_crime$Ano)+i-1, min(base_crime$Ano)+i)}
 
@@ -990,11 +951,9 @@ shinyServer(function(input, output) {
 			hoverinfo="text",
 			text = ~paste0(Tipo_Odds,": ", round(Odds,2), "<br>",
 						   "Ano: ", Ano)) %>%
-	  layout(title = paste0("Efeito instantâneo temporal do ", crime_escolhido_crimevis), 
+	  layout(title = paste0("Efeito instantâneo temporal do ", crime_escolhido_crimevis),
 	         titlefont = list(size = 15),
-			 yaxis = list(title = "Odds Temporal")#,
-			 #legend = list(orientation = 'h')
-			 )
+			 yaxis = list(title = "Odds Temporal"))
   
   })
   
@@ -1121,11 +1080,9 @@ plot_ly(aux2_espaco_temp, x = ~Ano, y = ~Odds,
         hoverinfo="text",
         text = ~paste0(Efeito_Vizinhanca,": ", round(Odds,2), "<br>",
                        "Ano: ", Ano)) %>%
-  layout(title = paste0("Efeito instantâneo anual da vizinhança no ", crime_escolhido_crimevis), 
+  layout(title = paste0("Efeito instantâneo anual da vizinhança no ", crime_escolhido_crimevis),
          titlefont = list(size = 15),
-         yaxis = list(title = "Odds Espaço-Temporal")#,
-         #legend = list(orientation = 'h')
-         )
+         yaxis = list(title = "Odds Espaço-Temporal"))
   
   
   
