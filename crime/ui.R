@@ -42,6 +42,8 @@ shinyUI(fluidPage(
                             dados brutos podem ser acessados no ",em("site")," da SSP-RS neste",
                             a("link", href = "http://www.ssp.rs.gov.br/"), "na parte de indicadores
                             criminais."),
+                          p("Os dados de população utilizados para o cálculo das taxas são estimativas do ",
+                            a("Departamento de Economia e Estatística", href = "https://dee.rs.gov.br/inicial", target="_blank"), "."),
                           br(),
                           p("O VisualizaCrimeRS foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
                             a("Shiny homepage.", 
