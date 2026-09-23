@@ -364,7 +364,6 @@ shinyUI(fluidPage(
                           
                           radioButtons("tipo_dado_tree", "Tipo de Informação:",
                                        c("Número de Ocorrências" = "ocorre_radio_tree",
-                                         "Taxa por 100.000" = "taxa_radio_tree",
                                          "População" = "pop_radio_tree"))
                           
                         ),

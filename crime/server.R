@@ -420,11 +420,10 @@ shinyServer(function(input, output) {
       
     }
     else {
-      if (input$tipo_dado_tree == "pop_radio_tree") {
-      df <- df_aux %>% 
+      df <- df_aux %>%
             select(Mun, Populacao) %>%
             rename('População' = Populacao)
-      
+
       d3plus(data = df,
              type = "tree_map",
              id = c('Mun'),
@@ -432,19 +431,6 @@ shinyServer(function(input, output) {
              locale = "pt_BR",
              clean_previous = TRUE) %>%
         d3plusSize("População")
-      }
-      else {
-        df <- df_aux %>% 
-              mutate(Taxa = Qtd/Populacao * 100000) %>%
-              select(Mun, Taxa)
-        
-        d3plus(data = df,
-               type = "tree_map",
-               id = c('Mun'),
-               width = "100%",
-               locale = "pt_BR",
-               clean_previous = TRUE) %>%
-          d3plusSize("Taxa")}
     }
     
   })
