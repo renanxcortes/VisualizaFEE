@@ -2,10 +2,12 @@
 # Atualiza a base de dados de criminalidade (base_crime) com os
 # indicadores por município da SSP-RS de 2017 a 2024, e recalcula
 # a população de todos os anos (2002-2024) com base nas estimativas
-# da FEE. Gera base_crimevis_2024.rds, usada pelo global.R.
+# da RIPSA. Gera base_crimevis_2024.rds, usada pelo global.R.
 #
 # Fonte dos dados criminais: https://www.ssp.rs.gov.br/indicadores-criminais
-# Fonte da população: estimativas_22_09_2026.csv (FEE)
+# Fonte da população: estimativas_22_09_2026.csv (Rede Interagencial de
+# Informações para a Saúde - RIPSA)
+# https://www.gov.br/saude/pt-br/composicao/seidigi/demas/ripsa
 ####################################################################
 
 library(tidyverse)
