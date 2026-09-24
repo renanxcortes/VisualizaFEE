@@ -18,7 +18,7 @@ library(shinythemes)
 ###########
 ###########
 
-base_crime <- readRDS("base_crimevis_2024.rds") # Tibble; gerada por atualiza_base_crime.R
+base_crime <- readRDS("base_crimevis_2025.rds") # Tibble; gerada por atualiza_base_crime.R
 
 mapa_rs <- readRDS("MapaRS.rds")
 
