@@ -364,7 +364,10 @@ shinyServer(function(input, output) {
     
     indice_moran <- round(moran(variavel, nbrsm, n, Szero(nbrsm))$I, 3)
     
-    gauge(indice_moran, min = -1, max = 1, 
+    gauge(indice_moran, 
+          min = -1, 
+          max = 1, 
+          abbreviateDecimals = 3,
           gaugeSectors(success = c(0.5, 1), warning = c(-0.5, 0.5), danger = c(-1, -0.5)),
           label = "I de Moran")
     
