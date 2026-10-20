@@ -148,6 +148,16 @@ reaproveitados quase sem mudanças:
     "Feminicídio Consumado" e "Ameaça".
   - Rótulos que dizem "por 100 mil habitantes" passam a dizer "por 100 mil mulheres".
   - Rótulos de população passam a dizer "População feminina".
+- **Tema rosa** *(pedido do usuário)*: o app de crime usa `shinytheme("united")`, cuja cor
+  de destaque é laranja/vermelho. No novo app, essa cor vira **rosa** na barra de navegação,
+  nas abas ativas, nos botões, nos links, nos sliders (ionRangeSlider) e no realce dos
+  `selectInput`. Como o shinythemes não tem tema rosa, a troca é feita com sobrescrita
+  CSS no arquivo de estilo do app.
+  - *Decisão minha:* o tom base é `#D63384`, o rosa do Bootstrap, com variações mais
+    escuras para hover e ativo.
+  - *Decisão minha:* só a interface muda. As paletas dos gráficos e dos mapas continuam
+    como estão (o gradiente cinza→amarelo→laranja→vermelho dos mapas de calor, as cores
+    do plotly e do treemap).
 - `MapaRS.rds`, `estilocrime.css` e `www/` copiados de `crime/`.
 - Um `.Rproj` e um `.rscignore` próprios.
 
