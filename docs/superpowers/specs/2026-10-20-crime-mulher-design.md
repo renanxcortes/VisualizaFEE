@@ -114,9 +114,9 @@ Estrutura observada:
 
 `crime/estimativas_24_09_2026.csv` (RIPSA) tem as colunas Município, CodIBGE, Ano,
 Homens, Mulheres, Total, Classe, Corede e Região Funcional. Usar `Classe == "Total"` e a
-coluna **`Mulheres`** como `Populacao`. O builder decide se copia o CSV para
-`crime_mulher/` ou se o lê de `../crime/`. O CSV tem cerca de 17 MB e não deve ir para o
-pacote publicado (ver `.rscignore`).
+coluna **`Mulheres`** como `Populacao`. **Decisão do usuário:** o CSV é **copiado** para
+`crime_mulher/estimativas_24_09_2026.csv` e o script de atualização lê essa cópia. O CSV
+tem cerca de 17 MB e não deve ir para o pacote publicado (ver `.rscignore`).
 
 ## Formato da base
 
@@ -177,6 +177,5 @@ reaproveitados quase sem mudanças:
 ## Deixado para o builder
 
 - A organização interna do script de leitura, principalmente o parser dos blocos de 2012–2017.
-- Copiar ou referenciar o CSV de população.
 - O texto exato da Apresentação, desde que siga o modelo do app de crime e os pontos acima.
 - Verificar o app rodando localmente com `shiny::runApp("crime_mulher")`.

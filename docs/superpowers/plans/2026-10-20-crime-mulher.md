@@ -21,7 +21,7 @@
 - Feminicídio Tentado em 2012 **não tem linhas** na base (nem NA, nem 0).
 - Linhas "NÃO INFORMADO" (2018) são descartadas.
 - Pinto Bandeira não aparece em 2012, a mesma convenção da base do app de crime (496 municípios em 2012, 497 a partir de 2013).
-- População lida de `../crime/estimativas_24_09_2026.csv` (o arquivo está no `.gitignore` e não é copiado). A correspondência Mun↔CodIBGE vem de `../crime/base_crimevis_2025.rds` (`distinct(Mun, CodIBGE)`).
+- População: copiar `crime/estimativas_24_09_2026.csv` para `crime_mulher/estimativas_24_09_2026.csv` e ler essa cópia. Seguindo a convenção do app de crime, adicionar `crime_mulher/estimativas_*.csv` ao `.gitignore` da raiz e ao `.rscignore`. A correspondência Mun↔CodIBGE vem de `../crime/base_crimevis_2025.rds` (`distinct(Mun, CodIBGE)`).
 - Cache dos .xlsx: `C:/Users/renan/AppData/Local/Temp/ssp_mulher_samples` (fora do git).
 - Tema: `shinytheme("united")` com sobrescrita CSS na cor rosa `#D63384`. As paletas de gráficos e mapas não mudam.
 - Rótulos: "Taxa por 100.000" → "Taxa por 100 mil mulheres". "População" / "Pop.:" → "População feminina" / "Pop. feminina:".
@@ -125,6 +125,8 @@ git commit -m "crime_mulher: funções de leitura das planilhas da SSP"
 
 **Files:**
 - Create: `crime_mulher/atualiza_base_crime_mulher.R`
+- Create (cópia, ignorada pelo git): `crime_mulher/estimativas_24_09_2026.csv`
+- Modify: `.gitignore` (adicionar a linha `crime_mulher/estimativas_*.csv`)
 - Create (gerado): `crime_mulher/base_crimemulher_2025.rds`
 - Test: `crime_mulher/tests/testthat/test_base.R`
 
@@ -188,7 +190,7 @@ Expected: o resumo impresso mostra "Anos: 2012-2025", "Tipos de crime: 6", "Muni
 - [ ] **Step 5: Commit**
 
 ```bash
-git add crime_mulher/atualiza_base_crime_mulher.R crime_mulher/base_crimemulher_2025.rds crime_mulher/tests/testthat/test_base.R
+git add .gitignore crime_mulher/atualiza_base_crime_mulher.R crime_mulher/base_crimemulher_2025.rds crime_mulher/tests/testthat/test_base.R
 git commit -m "crime_mulher: script de atualização e base 2012-2025"
 ```
 
@@ -245,7 +247,7 @@ Expected: FAIL em "sem resquícios" e "textos e base novos"
   - Nota: as taxas são por 100 mil mulheres (população feminina estimada pela RIPSA). Feminicídio Tentado só tem dados a partir de 2013. Estupro inclui estupro de vulnerável.
   - Seleções padrão e rótulos conforme as Global Constraints. O `max` de `n_grupos_kmeans` passa a ser 497.
 - `server.R`: rótulos dos eixos e tooltips conforme as Global Constraints. Na dispersão, adicionar um `shiny::validate(need(...))` antes do `kmeans` para o caso de haver menos pontos distintos do que `n_grupos`, com a mensagem "Há menos municípios distintos do que grupos; reduza o número de grupos ou amplie o filtro de população.".
-- `.rscignore`: excluir `tests`, `atualiza_base_crime_mulher.R` e `funcoes_atualiza_base.R`.
+- `.rscignore`: excluir `tests`, `atualiza_base_crime_mulher.R`, `funcoes_atualiza_base.R` e `estimativas_24_09_2026.csv`.
 
 - [ ] **Step 4: Rodar os testes e confirmar que passam**
 
