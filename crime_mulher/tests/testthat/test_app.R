@@ -5,12 +5,14 @@ glb <- readLines("../../global.R", encoding = "UTF-8")
 
 test_that("sem resquícios do app de crime", {
   txt <- c(ui, srv, glb)
-  for (s in c("VisualizaCrimeRS", "Homicídio Doloso", "\"Roubo", "Taxa por 100.000", "base_crimevis_2025.rds"))
+  for (s in c("Homicídio Doloso", "\"Roubo", "Taxa por 100.000", "base_crimevis_2025.rds"))
     expect_false(any(grepl(s, txt, fixed = TRUE)), info = s)
+  # O nome do app novo é VisualizaCrimeRS-Mulher; o nome antigo sozinho não pode sobrar
+  expect_false(any(grepl("VisualizaCrimeRS(?!-Mulher)", txt, perl = TRUE)))
 })
 
 test_that("textos e base novos", {
-  expect_true(any(grepl("VisualizaViolênciaMulherRS", ui, fixed = TRUE)))
+  expect_true(any(grepl("VisualizaCrimeRS-Mulher", ui, fixed = TRUE)))
   expect_true(any(grepl("Taxa por 100 mil mulheres", ui, fixed = TRUE)))
   expect_true(any(grepl("Taxa por 100 mil mulheres", srv, fixed = TRUE)))
   expect_true(any(grepl("População feminina", c(ui, srv), fixed = TRUE)))

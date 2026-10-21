@@ -21,7 +21,7 @@ shinyUI(fluidPage(
         
         ),  
   
-  navbarPage("VisualizaViolênciaMulherRS", # Navegação
+  navbarPage("VisualizaCrimeRS-Mulher", # Navegação
        tabPanel("Mapas",
 			 
 			 mainPanel(width = 12,
@@ -344,8 +344,8 @@ shinyUI(fluidPage(
 
                       sidebarLayout(
                         sidebarPanel(
-                          h2("Sobre o VisualizaViolênciaMulherRS"),
-                          p("O VisualizaViolênciaMulherRS é um aplicativo de visualização de dados de violência contra a mulher no Rio Grande do Sul, desenvolvido por Renan Xavier Cortes."),
+                          h2("Sobre o VisualizaCrimeRS-Mulher"),
+                          p("O VisualizaCrimeRS-Mulher é um aplicativo de visualização de dados de violência contra a mulher no Rio Grande do Sul, desenvolvido por Renan Xavier Cortes."),
                           br(),
                           br(),
                           "Shiny é um produto do ",
@@ -356,7 +356,7 @@ shinyUI(fluidPage(
                         ),
                         mainPanel(
                           h1("Visualização anual da violência contra a mulher no Rio Grande do Sul"),
-                          p("O aplicativo VisualizaViolênciaMulherRS apresenta,
+                          p("O aplicativo VisualizaCrimeRS-Mulher apresenta,
                             de maneira interativa e dinâmica, os indicadores de violência contra a mulher dos municípios do Rio Grande do Sul (RS)
                             com dados anuais disponibilizados pela Secretaria de Segurança Pública do RS (SSP-RS): Feminicídio Consumado,
                             Feminicídio Tentado, Ameaça, Estupro, Lesão Corporal e o Total desses indicadores. Seus
@@ -367,7 +367,7 @@ shinyUI(fluidPage(
                           p(em("Notas: a SSP-RS não disponibiliza dados de Feminicídio Tentado para 2012, então esse indicador só tem dados a partir de 2013.
                                Os dados de Estupro incluem Estupro de Vulnerável.")),
                           br(),
-                          p("O VisualizaViolênciaMulherRS foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
+                          p("O VisualizaCrimeRS-Mulher foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
                             a("Shiny homepage.", 
                               href = "http://www.rstudio.com/shiny")),
 						              br(),
