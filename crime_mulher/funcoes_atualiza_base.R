@@ -17,8 +17,10 @@ library(tidyverse)
 library(readxl)
 library(stringi)
 
-# Pasta local para cache dos .xlsx baixados (não versionada no git)
-cache_dir_mulher <- "C:/Users/renan/AppData/Local/Temp/ssp_mulher_samples"
+# Pasta local para cache dos .xlsx baixados (não versionada no git).
+# Por padrão fica na pasta temporária do sistema (que sobrevive entre
+# sessões do R); pode ser trocada pela variável de ambiente SSP_MULHER_CACHE.
+cache_dir_mulher <- Sys.getenv("SSP_MULHER_CACHE", file.path(dirname(tempdir()), "ssp_mulher_samples"))
 
 urls_ssp_mulher <- c(
   "2012_2017" = "https://www.ssp.rs.gov.br/upload/arquivos/202307/12160259-site-violencia-contra-as-mulheres-2012-a-2017-atualizado-em-09-janeiro-2018-publicacao.xlsx",
@@ -145,4 +147,46 @@ associa_codibge <- function(df, crosswalk_key) {
   }
 
   df %>% select(-MunSSP, -key) %>% relocate(CodIBGE)
+}
+
+# Confere se cada indicador/ano tem os 497 municípios (exceto Feminicídio
+# Tentado em 2012, que a SSP não publica) e se não há linhas duplicadas.
+# Pega, por exemplo, um município cujo "Total" veio vazio ou com "-" na
+# planilha e por isso foi descartado na leitura.
+confere_municipios <- function(base, n_municipios = 497) {
+  duplicadas <- base %>% count(CodIBGE, Ano, Crime) %>% filter(n > 1)
+  if (nrow(duplicadas) > 0) {
+    stop("Linhas duplicadas de município/ano/indicador: ", nrow(duplicadas))
+  }
+
+  contagem <- base %>%
+    count(Ano, Crime = as.character(Crime)) %>%
+    filter(!(Ano == 2012 & Crime == "Feminicídio Tentado"), n != n_municipios)
+  if (nrow(contagem) > 0) {
+    stop("Número de municípios diferente de ", n_municipios, " em: ",
+         paste(contagem$Ano, contagem$Crime, paste0("(", contagem$n, ")"), collapse = "; "))
+  }
+  invisible(TRUE)
+}
+
+# Confere o total RS de cada ano/indicador contra a aba "Geral" da SSP.
+# Única diferença aceita: 2018, em que as linhas "NÃO INFORMADO" (1 caso em
+# Ameaça e 1 em Lesão Corporal) ficam fora da base.
+confere_totais_geral <- function(base) {
+  rs <- base %>%
+    group_by(Ano, Crime = as.character(Crime)) %>%
+    summarize(RS = sum(Qtd), .groups = "drop")
+  geral <- map_dfr(names(urls_ssp_mulher), le_geral_ssp_mulher)
+
+  divergencias <- full_join(rs, geral, by = c("Ano", "Crime")) %>%
+    mutate(esperado = Qtd - (Ano == 2018) * case_when(Crime %in% c("Ameaça", "Lesão Corporal") ~ 1,
+                                                      Crime == "Total" ~ 2,
+                                                      TRUE ~ 0)) %>%
+    filter(is.na(RS) | is.na(esperado) | RS != esperado)
+  if (nrow(divergencias) > 0) {
+    stop("Total RS diferente da aba Geral da SSP em: ",
+         paste(divergencias$Ano, divergencias$Crime,
+               paste0("(base ", divergencias$RS, ", SSP ", divergencias$Qtd, ")"), collapse = "; "))
+  }
+  invisible(TRUE)
 }

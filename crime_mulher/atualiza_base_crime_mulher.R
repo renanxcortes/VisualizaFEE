@@ -74,5 +74,10 @@ cat("Anos:", paste(range(base_crime_mulher$Ano), collapse = "-"), "\n")
 cat("Tipos de crime:", nlevels(base_crime_mulher$Crime), "\n")
 cat("Municípios:", n_distinct(base_crime_mulher$CodIBGE), "\n")
 
+# 5. Conferências antes de salvar (param o script se algo não bater) --------
+confere_municipios(base_crime_mulher)
+confere_totais_geral(base_crime_mulher)
+cat("Conferências OK: 497 municípios por indicador/ano e totais RS iguais aos da SSP\n")
+
 saveRDS(base_crime_mulher, "base_crimemulher_2025.rds")
 cat("Salvo em base_crimemulher_2025.rds\n")

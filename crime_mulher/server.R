@@ -465,7 +465,7 @@ shinyServer(function(input, output) {
   
   
   output$downloadData <- downloadHandler(
-    filename = function() { paste('base_crime', '.csv', sep='') },
+    filename = function() { paste('base_violencia_mulher', '.csv', sep='') },
     content = function(file) {
       write.csv(datasetInput(), file, fileEncoding = "latin1")
     }
