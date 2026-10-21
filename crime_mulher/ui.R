@@ -22,179 +22,6 @@ shinyUI(fluidPage(
         ),  
   
   navbarPage("VisualizaViolênciaMulherRS", # Navegação
-             tabPanel("Apresentação",
-
-                      sidebarLayout(
-                        sidebarPanel(
-                          h2("Sobre o VisualizaViolênciaMulherRS"),
-                          p("O VisualizaViolênciaMulherRS é um aplicativo de visualização de dados de violência contra a mulher no Rio Grande do Sul, desenvolvido por Renan Xavier Cortes."),
-                          br(),
-                          br(),
-                          "Shiny é um produto do ",
-                          span("RStudio", style = "color:blue"),".", 
-                          br(), 
-                          br(),
-                          img(src = "bigorb.png", height = 82, width = 92)
-                        ),
-                        mainPanel(
-                          h1("Visualização anual da violência contra a mulher no Rio Grande do Sul"),
-                          p("O aplicativo VisualizaViolênciaMulherRS apresenta,
-                            de maneira interativa e dinâmica, os indicadores de violência contra a mulher dos municípios do Rio Grande do Sul (RS)
-                            com dados anuais disponibilizados pela Secretaria de Segurança Pública do RS (SSP-RS): Feminicídio Consumado,
-                            Feminicídio Tentado, Ameaça, Estupro, Lesão Corporal e o Total desses indicadores. Seus
-                            dados brutos podem ser acessados no ",em("site")," da SSP-RS neste",
-                            a("link", href = "https://www.ssp.rs.gov.br/indicadores-da-violencia-contra-a-mulher", target="_blank"), "."),
-                          p("As taxas são calculadas por 100 mil mulheres, com a população feminina estimada pela ",
-                            a("Rede Interagencial de Informações para a Saúde (RIPSA)", href = "https://www.gov.br/saude/pt-br/composicao/seidigi/demas/ripsa", target="_blank"), "."),
-                          p(em("Notas: a SSP-RS não disponibiliza dados de Feminicídio Tentado para 2012, então esse indicador só tem dados a partir de 2013.
-                               Os dados de Estupro incluem Estupro de Vulnerável.")),
-                          br(),
-                          p("O VisualizaViolênciaMulherRS foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
-                            a("Shiny homepage.", 
-                              href = "http://www.rstudio.com/shiny")),
-						              br(),
-                          br(),
-                          h2("Características do aplicativo"),
-                          p("* Visualize séries temporais dos municípios e do Estado por número de ocorrências e taxas."),
-                          p("* Relacione crimes em gráficos de dispersão e crie grupos de cidades."),
-                          p("* Visualize os dados em mapas, de maneira interativa, e calcule autocorrelações espaciais dos crimes. Adicionalmente, verifique a evolução espaço temporal de presença/ausência de crimes através de Cadeias de Markov."),
-                          p("* Obtenha a representação municipal no Estado de maneira rápida e intuitiva."),
-                          p("* Realize pesquisas rápidas na base de dados e faça o ",em("download")," dos dados."),
-                          br(),
-                          h3("Contato para dúvidas, sugestões ou solicitações de código:"),
-						              p("Renan Xavier Cortes ",
-                            a("(GitHub)",
-                              href = "https://github.com/renanxcortes", target="_blank")),
-						  
-						  br(),
-						  br(),
-						  div(img(href = "http://creativecommons.org/licenses/by/4.0/", src="https://i.creativecommons.org/l/by/4.0/88x31.png"), align = "center"),
-						  div(p("Este obra está licenciada com uma Licença"), align = "center"),
-						  div(a("Creative Commons Atribuição 4.0 Internacional",
-                              href = "http://creativecommons.org/licenses/by/4.0/", target="_blank"), align = "center")
-                      )
-                      )),
-             navbarMenu(title = "Séries Temporais",
-               tabPanel("Compara Crimes",
-                      
-                      sidebarLayout(
-                        sidebarPanel(
-                          
-                          selectInput('cidade_compara_crime', 'Cidade a ser escolhida', 
-                                      as.character(unique(base_crime$Mun)),
-                                      selected = "Porto Alegre"),
-                          
-                          selectizeInput('crimes_compara_crimes', 'Escolha até 5 crimes', 
-                                      as.character(unique(base_crime$Crime)),
-                                      selected = c("Feminicídio Consumado"),
-                                      options = list(maxItems = 5,
-                                                     placeholder = 'Selecione uma lista de crimes...')),
-                          
-                          radioButtons("tipo_dado_compara_crime", "Tipo de Informação:",
-                                       c("Número de Ocorrências" = "ocorre_radio_compara_crime",
-                                         "Taxa por 100 mil mulheres" = "taxa_radio_compara_crime"))
-                          
-                        ),
-                        
-                        # Show the plots
-                        mainPanel(
-                          tabsetPanel(type = "tabs", 
-                                      tabPanel("Municípios", plotlyOutput("ts_compara_crime_cidades")), 
-                                      tabPanel("Estado", plotlyOutput("ts_compara_crime_rs"))
-                          )
-                        )
-                      )),
-               tabPanel("Compara Municípios",
-                        
-                        sidebarLayout(
-                          sidebarPanel(
-                            
-                            selectizeInput('cidades_compara', 'Escolha até 5 cidades', 
-                                        as.character(unique(base_crime$Mun)),
-                                        selected = c("Porto Alegre"),
-                                        options = list(maxItems = 5,
-                                                       placeholder = 'Selecione uma lista de municípios...')),
-                            
-                            selectInput('crime_compara', 'Crime a ser escolhido', 
-                                        as.character(unique(base_crime$Crime)),
-										selected = "Ameaça"),
-                            
-                            radioButtons("tipo_dado_compara_municipio", "Tipo de Informação:",
-                                         c("Número de Ocorrências" = "ocorre_radio_compara_municipio",
-                                           "Taxa por 100 mil mulheres" = "taxa_radio_compara_municipio")),
-                            
-                            checkboxInput("checkbox_inclui_rs_rmpa_ts", label = "Incluir outra série?", value = FALSE),
-							
-							conditionalPanel(condition = 'input.checkbox_inclui_rs_rmpa_ts',
-                            radioButtons("radio_estado_rmpa", "Qual região?",
-                                         c("Rio Grande do Sul" = "radio_rs",
-                                           "Região Metropolitana de Porto Alegre (RMPA)" = "radio_rmpa"
-                                           ))
-                            )
-							
-                            
-                          ),
-                          
-                          # Show the plots
-                          mainPanel(
-                            plotlyOutput("ts_compara_cidades")
-                          )
-                        ))), 
-             tabPanel("Relação entre crimes",
-                                   sidebarLayout(
-                                     sidebarPanel(
-                                       
-                                       sliderInput('ano_disp', 'Ano a ser escolhido', 
-                                                   min = min(base_crime$Ano),
-                                                   max = max(base_crime$Ano),
-                                                   value = max(base_crime$Ano),
-                                                   step=1,
-                                                   animate = animationOptions(interval = 1750, loop = TRUE), sep=""), # 1500
-                                       
-								       sliderInput('dispersao_mun_pop_control', "População feminina:",
-						                           min = 0,
-						                           max = 800000,
-						                           value = range(c(0, 800000)),
-						                           step = 2500),
-									   
-                                       selectInput('crimex', 'Selecione o crime do eixo horizontal', 
-                                                   as.character(unique(base_crime$Crime)),
-                                                   selected = "Feminicídio Consumado"),
-                                       
-                                       selectInput('crimey', 'Selecione o crime do eixo vertical', 
-                                                   as.character(unique(base_crime$Crime)),
-                                                   selected = "Ameaça"),
-                                       
-                                       radioButtons("tipo_dado_disp", "Tipo de Informação:",
-                                                    c("Número de Ocorrências" = "ocorre_radio_disp",
-                                                      "Taxa por 100 mil mulheres" = "taxa_radio_disp")),
-
-                                       fluidRow(
-                                         column(8, checkboxInput("checkbox_kmeans", label = "Criar grupos de municípios?", 
-                                                                 value = FALSE)),
-                                        column(4, bsButton("q_kmeans", label = "Ajuda", icon = icon("info"),
-                                                           style = "info", size = "medium")),
-                                        bsPopover(id = "q_kmeans", title = "K-Means",
-                                                 content = paste0("Os grupos de municípios a serem criados seguem o algoritmo de clusterização denominado ", strong("K-Means"), ". Este algoritmo agrupa cidades similares entre si de acordo com as suas distâncias entre os crimes escolhidos. Isto é, municípios que tem ocorrências ou taxas próximas, estarão no mesmo grupo. Para maiores informações veja este ", 
-                                                                  a("link metodológico", 
-                                                                    href = "https://www.coursera.org/learn/machine-learning/lecture/93VPG/k-means-algorithm",
-                                                                    target="_blank"),"."),
-                                                 placement = "right", 
-                                                 trigger = "focus", # O 'click' só fechava quando clicava denovo 
-                                                 options = list(container = "body")
-                                       )),
-                                       
-                                       conditionalPanel(condition = 'input.checkbox_kmeans',
-                                                        numericInput("n_grupos_kmeans", "Número de Grupos:", 3, min = 2, max = 497)
-                                                        )
-                                       
-                                     ),
-                                     
-                                     # Show the plots
-                                     mainPanel(
-                                       plotlyOutput("dispersao")
-                                     )
-                                   )),
        tabPanel("Mapas",
 			 
 			 mainPanel(width = 12,
@@ -347,7 +174,128 @@ shinyUI(fluidPage(
             )
             )
             ),
-             
+             navbarMenu(title = "Séries Temporais",
+               tabPanel("Compara Crimes",
+                      
+                      sidebarLayout(
+                        sidebarPanel(
+                          
+                          selectInput('cidade_compara_crime', 'Cidade a ser escolhida', 
+                                      as.character(unique(base_crime$Mun)),
+                                      selected = "Porto Alegre"),
+                          
+                          selectizeInput('crimes_compara_crimes', 'Escolha até 5 crimes', 
+                                      as.character(unique(base_crime$Crime)),
+                                      selected = c("Feminicídio Consumado"),
+                                      options = list(maxItems = 5,
+                                                     placeholder = 'Selecione uma lista de crimes...')),
+                          
+                          radioButtons("tipo_dado_compara_crime", "Tipo de Informação:",
+                                       c("Número de Ocorrências" = "ocorre_radio_compara_crime",
+                                         "Taxa por 100 mil mulheres" = "taxa_radio_compara_crime"))
+                          
+                        ),
+                        
+                        # Show the plots
+                        mainPanel(
+                          tabsetPanel(type = "tabs", 
+                                      tabPanel("Municípios", plotlyOutput("ts_compara_crime_cidades")), 
+                                      tabPanel("Estado", plotlyOutput("ts_compara_crime_rs"))
+                          )
+                        )
+                      )),
+               tabPanel("Compara Municípios",
+                        
+                        sidebarLayout(
+                          sidebarPanel(
+                            
+                            selectizeInput('cidades_compara', 'Escolha até 5 cidades', 
+                                        as.character(unique(base_crime$Mun)),
+                                        selected = c("Porto Alegre"),
+                                        options = list(maxItems = 5,
+                                                       placeholder = 'Selecione uma lista de municípios...')),
+                            
+                            selectInput('crime_compara', 'Crime a ser escolhido', 
+                                        as.character(unique(base_crime$Crime)),
+										selected = "Ameaça"),
+                            
+                            radioButtons("tipo_dado_compara_municipio", "Tipo de Informação:",
+                                         c("Número de Ocorrências" = "ocorre_radio_compara_municipio",
+                                           "Taxa por 100 mil mulheres" = "taxa_radio_compara_municipio")),
+                            
+                            checkboxInput("checkbox_inclui_rs_rmpa_ts", label = "Incluir outra série?", value = FALSE),
+							
+							conditionalPanel(condition = 'input.checkbox_inclui_rs_rmpa_ts',
+                            radioButtons("radio_estado_rmpa", "Qual região?",
+                                         c("Rio Grande do Sul" = "radio_rs",
+                                           "Região Metropolitana de Porto Alegre (RMPA)" = "radio_rmpa"
+                                           ))
+                            )
+							
+                            
+                          ),
+                          
+                          # Show the plots
+                          mainPanel(
+                            plotlyOutput("ts_compara_cidades")
+                          )
+                        ))), 
+             tabPanel("Relação entre crimes",
+                                   sidebarLayout(
+                                     sidebarPanel(
+                                       
+                                       sliderInput('ano_disp', 'Ano a ser escolhido', 
+                                                   min = min(base_crime$Ano),
+                                                   max = max(base_crime$Ano),
+                                                   value = max(base_crime$Ano),
+                                                   step=1,
+                                                   animate = animationOptions(interval = 1750, loop = TRUE), sep=""), # 1500
+                                       
+								       sliderInput('dispersao_mun_pop_control', "População feminina:",
+						                           min = 0,
+						                           max = 800000,
+						                           value = range(c(0, 800000)),
+						                           step = 2500),
+									   
+                                       selectInput('crimex', 'Selecione o crime do eixo horizontal', 
+                                                   as.character(unique(base_crime$Crime)),
+                                                   selected = "Feminicídio Consumado"),
+                                       
+                                       selectInput('crimey', 'Selecione o crime do eixo vertical', 
+                                                   as.character(unique(base_crime$Crime)),
+                                                   selected = "Ameaça"),
+                                       
+                                       radioButtons("tipo_dado_disp", "Tipo de Informação:",
+                                                    c("Número de Ocorrências" = "ocorre_radio_disp",
+                                                      "Taxa por 100 mil mulheres" = "taxa_radio_disp")),
+
+                                       fluidRow(
+                                         column(8, checkboxInput("checkbox_kmeans", label = "Criar grupos de municípios?", 
+                                                                 value = FALSE)),
+                                        column(4, bsButton("q_kmeans", label = "Ajuda", icon = icon("info"),
+                                                           style = "info", size = "medium")),
+                                        bsPopover(id = "q_kmeans", title = "K-Means",
+                                                 content = paste0("Os grupos de municípios a serem criados seguem o algoritmo de clusterização denominado ", strong("K-Means"), ". Este algoritmo agrupa cidades similares entre si de acordo com as suas distâncias entre os crimes escolhidos. Isto é, municípios que tem ocorrências ou taxas próximas, estarão no mesmo grupo. Para maiores informações veja este ", 
+                                                                  a("link metodológico", 
+                                                                    href = "https://www.coursera.org/learn/machine-learning/lecture/93VPG/k-means-algorithm",
+                                                                    target="_blank"),"."),
+                                                 placement = "right", 
+                                                 trigger = "focus", # O 'click' só fechava quando clicava denovo 
+                                                 options = list(container = "body")
+                                       )),
+                                       
+                                       conditionalPanel(condition = 'input.checkbox_kmeans',
+                                                        numericInput("n_grupos_kmeans", "Número de Grupos:", 3, min = 2, max = 497)
+                                                        )
+                                       
+                                     ),
+                                     
+                                     # Show the plots
+                                     mainPanel(
+                                       plotlyOutput("dispersao")
+                                     )
+                                   )),
+
              tabPanel("Representação no estado",
                       
                       sidebarLayout(
@@ -391,6 +339,58 @@ shinyUI(fluidPage(
                         mainPanel(
                           dataTableOutput("tabela")
                         )
+                      )),
+             tabPanel("Sobre",
+
+                      sidebarLayout(
+                        sidebarPanel(
+                          h2("Sobre o VisualizaViolênciaMulherRS"),
+                          p("O VisualizaViolênciaMulherRS é um aplicativo de visualização de dados de violência contra a mulher no Rio Grande do Sul, desenvolvido por Renan Xavier Cortes."),
+                          br(),
+                          br(),
+                          "Shiny é um produto do ",
+                          span("RStudio", style = "color:blue"),".", 
+                          br(), 
+                          br(),
+                          img(src = "bigorb.png", height = 82, width = 92)
+                        ),
+                        mainPanel(
+                          h1("Visualização anual da violência contra a mulher no Rio Grande do Sul"),
+                          p("O aplicativo VisualizaViolênciaMulherRS apresenta,
+                            de maneira interativa e dinâmica, os indicadores de violência contra a mulher dos municípios do Rio Grande do Sul (RS)
+                            com dados anuais disponibilizados pela Secretaria de Segurança Pública do RS (SSP-RS): Feminicídio Consumado,
+                            Feminicídio Tentado, Ameaça, Estupro, Lesão Corporal e o Total desses indicadores. Seus
+                            dados brutos podem ser acessados no ",em("site")," da SSP-RS neste",
+                            a("link", href = "https://www.ssp.rs.gov.br/indicadores-da-violencia-contra-a-mulher", target="_blank"), "."),
+                          p("As taxas são calculadas por 100 mil mulheres, com a população feminina estimada pela ",
+                            a("Rede Interagencial de Informações para a Saúde (RIPSA)", href = "https://www.gov.br/saude/pt-br/composicao/seidigi/demas/ripsa", target="_blank"), "."),
+                          p(em("Notas: a SSP-RS não disponibiliza dados de Feminicídio Tentado para 2012, então esse indicador só tem dados a partir de 2013.
+                               Os dados de Estupro incluem Estupro de Vulnerável.")),
+                          br(),
+                          p("O VisualizaViolênciaMulherRS foi desenvolvido com o uso da ferramenta gratuita Shiny. Para uma introdução e outros exemplos, acesse ",
+                            a("Shiny homepage.", 
+                              href = "http://www.rstudio.com/shiny")),
+						              br(),
+                          br(),
+                          h2("Características do aplicativo"),
+                          p("* Visualize séries temporais dos municípios e do Estado por número de ocorrências e taxas."),
+                          p("* Relacione crimes em gráficos de dispersão e crie grupos de cidades."),
+                          p("* Visualize os dados em mapas, de maneira interativa, e calcule autocorrelações espaciais dos crimes. Adicionalmente, verifique a evolução espaço temporal de presença/ausência de crimes através de Cadeias de Markov."),
+                          p("* Obtenha a representação municipal no Estado de maneira rápida e intuitiva."),
+                          p("* Realize pesquisas rápidas na base de dados e faça o ",em("download")," dos dados."),
+                          br(),
+                          h3("Contato para dúvidas, sugestões ou solicitações de código:"),
+						              p("Renan Xavier Cortes ",
+                            a("(GitHub)",
+                              href = "https://github.com/renanxcortes", target="_blank")),
+						  
+						  br(),
+						  br(),
+						  div(img(href = "http://creativecommons.org/licenses/by/4.0/", src="https://i.creativecommons.org/l/by/4.0/88x31.png"), align = "center"),
+						  div(p("Este obra está licenciada com uma Licença"), align = "center"),
+						  div(a("Creative Commons Atribuição 4.0 Internacional",
+                              href = "http://creativecommons.org/licenses/by/4.0/", target="_blank"), align = "center")
+                      )
                       )))
   
   # Fim do User Interface
