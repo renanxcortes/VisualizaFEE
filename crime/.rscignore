@@ -5,3 +5,4 @@ BaseCrime_2016.rds
 base_crimevis_2016_pop_ok.rds
 codigo_auxiliar_atualiza_ano.R
 atualiza_base_crime.R
+tests
